@@ -46,6 +46,9 @@ main{padding:0 16px 32px}
 .dayhead{font-weight:600;margin:12px 0 6px}
 .strip{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:0 0 8px}
 .strip b{color:var(--text)}
+.dayhead.sub{font-size:.9rem;margin-top:16px}
+.blk.tail{background:transparent;border:1px dashed var(--line);color:var(--muted);padding:0}
+.bad-text{color:var(--danger)}
 .gridwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:78vh}
 .grid{display:grid;position:relative;min-width:max-content}
 .corner,.colhead{position:sticky;top:0;z-index:4;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 6px;font-weight:600;font-size:.85rem;text-align:center}
@@ -130,6 +133,13 @@ const CONFIG = {
   // Each surface is one full pitch shown as two halves (Grass 1 + Grass 2, AGP 1 + AGP 2).
   // A full-pitch team takes both halves; smaller teams share them.
   CAPACITY: { grass: 1, agp: 1 },            // full pitches per surface
+  // Changing rooms: home teams use rooms 1 and 3, away teams 2 and 4. Teams arrive ready to play and
+  // change after the match; a room is booked from match end for ROOM_CHANGE_MIN, then needs ROOM_TURNAROUND_MIN.
+  ROOMS: { home: [1, 3], away: [2, 4] },
+  ROOM_CHANGE_MIN: 30,
+  ROOM_TURNAROUND_MIN: 30,
+  ROOM_GROUPS: ['JUNIOR BOYS', 'JUNIOR GIRLS', 'WOMEN'],   // minis don't book rooms
+  ROOM_KINDS: ['match'],                                    // add 'session' to book rooms for training too
   OVERRUN: 0.34,                             // allowance before flagging; 0.34 lets 1/3 + 1/2 + 1/2 fit, as the Pitch Usage tab plans
   SLOTS: [
     { id: 'a', s: 9*60,      e: 10*60+30 },
@@ -145,7 +155,7 @@ const CONFIG = {
   DEFAULT_SHARE: 1
 };
 const SAMPLE_CSV = ",MINIS,,,,,,,,,,,,,,,,,,,,JUNIOR BOYS,,,,,,,,,,,,,,,JUNIOR GIRLS,,,,,,,,,,,,,,,Women,,,,\r\n,U6s,U7s,,,U8,,,U9,,,U10,,,U11,,,U12 Boys,,,,U13 Boys,,,U14 Boys,,,U15 Boys,,,U16 Boys,,,Colts,,,U12 Girls,,,U14 Girls,,,,U16 Girls,,,,U18 Girls,,,,1st XV,,,2nd XV,\r\n02/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n09/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n16/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n23/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n30/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n06/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,CP,Pre-season,HG,,HG =3 HA =3,Morpeth ,AW,,Training,AW,,Ashington,HG,,Blyton,HA,CP,U15s SWAP,HA,CP,Pre-season,,,Northern (training A),AW,,,NORTH VALKYRIES (A) ,HG,,TRAINING,NORTHERN (A),AW,,FRIENDLY,,,,,\r\n13/09,Training,Pre-season,HG,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,,HG =3 HA =3,Training ,AW,,Training,HA,CP,Northern,AW,,Billingham,HG,,(Houghton),AW,,FUN FEST.,,,FUN FEST,HA,CP, ,HOUGHTON ,AW,,TRAINING,BILLINGHAM AND BLAYDON (A),HG,,FRIENDLY,,,,,\r\n20/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HG,,HG =3 HA =3,Tynedale,AW,,Morpeth,HG,,Hartlepool Rovers,HA,CP,Blyton,AW,,(Northern) Home-W/E,HG,,Pre-season,,,,AW,,,Training at Tynedale ,AW,,TRAINING,Training,HA,CP,LEAGUE,,,,,\r\n27/09,Training,Pre-season,HA,,FUN FEST.,AW,,FUN FEST.,AW,,FUN FEST.,AW,,Training,HG,,Gosforth ,AW,,HG =1 HA =1,Training ,HG,,Percy park,AW,,Sunderland,AW,,Ponteland,HA,CP,(Percy Park) Away,AW,,NORTH FEST GOSFORTH,,,Training ,HG,,,NORTH VALKYRIES (H),HA,CP,,,AW,,LEAGUE,,,,,\r\n04/10,Training,Northern,HA,,Tynedale,HG,,Tynedale,AW,,Ponteland away,AW,,Ashington,AW,,Ponteland,HA,CP,HG =1 HA =2,Wallsend - CC,HA,CP,PADDOCK,AW,,Ashington,HG,,,AW,,U16 Boys (moved),HA,CP,NOVO FEST ,,,NOVO FEST,AW,,,NORTHERN (A),HG,,LEAGUE,HOUGHTON (A),AW,,LEAGUE,,,,,\r\n11/10,Training,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,?Training,HG,,Training,HA,CP,Training?,HG,,Joint training (A'ton),AW,,Northern ,AW,,,,,game request ?,HA,CP,,NORTHERN (A),AW,,NAT CUP,HOUGHTON @MORPETH (H),AW,,NAT CUP,Wensleydale ,,,,\r\n18/10,Training,Novos,HA,,Gosforth,AW,,Blyth / Ashington,HG,,Novos away,AW,,Northern,HA,CP,Alnwick,AW,,HG =1 HA =2,Alnwick ,AW,,Blaydon?,HG,,Middlesbrough,HA,CP,Novos,AW,,,HG,,NORTH FEST NOVO,,,MORPETH (A),AW,,,,AW,,,KESWICK (HOME,HA,CP,,,,,,\r\n25/10,Training,Training,HG,,Training,HG,,Training,HA,,Training,HA,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,HG =2 HA =2,Ponteland,HG,,Blyth,AW,,Horden/ Peterlee,AW,,FNL,HA,CP,,AW,,DURHAM FEST,,,,HG,,,PONTPETH (H),HA,CP,R6 LEAG,,AW,,,,,,,\r\n01/11,Indoors,Ashington,AW,,Ponteland,AW,,Gosforth / N Shields,AW,,Morpeth home,HA,,North Shields,AW,,BLYTH,HG,CP,HG =1 HA =1,Blaydon,HA,CP,Houghton ,AW,,Hartlepool,HG,,,AW,,,HA,CP,NORTH FEST,,,game request ?,HG,,WF R3,TYNEDALE/GOSFORTH (H),HA,CP,WF R1,,AW,,COUNTY,,,,,\r\n08/11,Indoors,Training,HA,CP,Training,HA,,Training,HG,,Training,HG,,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,Tynedale (training),AW,,Morpeth (CC),HA,CP,Alnwick (CC),AW,,Poppy sword (7th) Consett (A),AW,,,,,TYNEDALE (H),HA,CP,,EGREMONT,AW,,NAT CUP/R1 LEAG,,HG,,NAT CUP / PUT,Houghton,,,,\r\n15/11,Indoors,Wallsend/Alnwick,HG,,Blyth,AW,,W'End / Alnwick,HA,CP,Gosforth away,AW,,Ponteland,AW,,WOVOS,AW,,HG =1 HA =1,Northern ,AW,,Training,HG,,Guisborough (A),AW,,Percy Park,HA,CP,Gateshead @wallsend,HG,,NORTH FEST ROCKCLIFF,,H,,AW,,,,HA,CP,,BLAYDON (A),AW,,LEAGUE,,,,,\r\n22/11,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,CP,Training,HG,,HG =3 HA =3,Percy Park,HG,,,AW,,Training?,AW,,Gosforth,HA,CP,,AW,,,,,Novo (H),HG,,,PENRITH ,AW,,NAT CUP,,HA,CP,NAT CUP,Durham city,,,,\r\n29/11,Indoors,Tynedale,AW,,Alnwick,HG,,Northern,AW,,Northern home,HA,CP,Alnwick,AW,,GOSFORTH,HA,,HG =1 HA =2,Darlington ?A,HA,CP,Novos,AW,,Jarrovians,HG,,,AW,,Ryton,HA,CP,NORTH FEST NORTH SHIELDS,,A,WATERFALL CUP,AW,,WF R4,NORTHERN (H),HG,,R2 LEAGUE,,AW,,COUNTY,,,,,\r\n06/12,Indoors,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HA,CP,COUNTY CUP,AW,,COUNTY CUP,HG,,Houghton @ wallsend,AW,,NORTHERN (H/A),,,TYNEDALE (A),HA,CP,WF R5,WATERFALL CUP,AW,,WF R2,KESWICK/PENRITH (H),HG,,LEAGUE/COUNTY,,,,,\r\n13/12,Indoors,Wallsend,AW,,Tynedale,AW,,T'dale / Novos,HA,CP,Tynedale home,HG,,Tyndale,AW,,PONTELAND,AW,,HG =1 HA =1,Training ,AW,,Ashington,HG,,Ponteland,HA,CP,FNL,AW,,,HG,,NORTH FEST ASHINGTON,,A,Northern (H/A),AW,,,,HA,CP,PDG OPP,,AW,,C. MATCH,Novos 2s,,,,\r\n20/12,Indoors,Training,HG,CP,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,,HG =3 HA =3,Alnwick,HG,,,AW,,Hartlepool,AW,,Alnwick,HA,CP,,AW,,,,,BISHOP AUCK (H),HG,,,,AW,,,,HA,CP,,,,,,\r\n27/12,Christmas,,,,,,,,,,,,,,,,,,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,,Christmas,,,,Christmas,,,,,,,,\r\n03/01,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,,,Training,HA,CP,Tynedale ,AW,,Training,HG,,Training,AW,,Training,HA,CP,Training,,,Training,AW,,,Training,HG,,,NORTHERN (A),AW,,LEAGUE/PUT,,,,,\r\n10/01,Indoors,Pont,HG,,Northern,AW,,T'Dale / N Shields,HG,,Wallsend away,AW,,North Shields,HA,CP,1922,HA,,HG =2 HA =2,,AW,,Percy park,HA,CP,Middlesbrough,AW,,Novos,HG,,Northern (A),AW,,NORTH FEST ROCKCLIFF,,H,,HA,CP,,SECOND STAGE LEAG R3,AW,,,,HG,,COUNTY,,,,,\r\n17/01,Indoors,Training,HA,,Training,HA,,Training,HA,,Training,HG,,Training,HG,,Training,HG,CP,HG =3 HA =3,Blaydon,AW,,,HG,,Percy Park,HA,CP,Morpeth ,AW,,Percy Park @ wallsend,HG,,,,,,AW,,,SECOND STAGE LEAG R4,HA,CP,,,AW,,C. MATCH,,,,,\r\n24/01,Indoors,T'Dale,HA,,PP,HA,CP,Ponteland,AW,,Blyth Home,HG,,Ponteland,AW,,GOSFORTH,AW,,HG =1 HA =2,Northern,HG,,,AW,,Ponteland,AW,,Blaydon,HA,CP,,AW,,NORTH FEST,,,TYNEDALE (A),n,,,WATERFALL CUP SEMI,AW,,WF SEM FIN,HOUGHTON (H),HA,CP,LEAGUE,,,,,\r\n31/01,Indoors,Training,HG,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,Training,HA,,HG =3 HA =3,Darlington,HA,CP,,AW,,Morpeth,HG,,Percy Park,AW,,,HA,CP,DURHAM FEST/ NORTHERN (H/A),,,MORPETH (H),AW,,,,HG,,NAT CUP,,AW,,,Workington,,,,\r\n07/02,Indoors,Ashington,HA,,Ponteland,AW,,Northern,HA,CP,Northern Away,AW,,Northern / Tynedale,HG,,NORTHERN,AW,,HG =1 HA =2,Tynedale,HG,,Blyth,HA,CP,Hartlepool Rovers,AW,,Tynedale,AW,,,AW,,NORTH FEST,,,,HA,CP,,,AW,,PDG OPP,,HG,,COUNTY / NAT CUP,,,,,\r\n14/02,Indoors,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Horden/ Peterlee,HA,CP,Alnwick,AW,,,HG,,,,,Novo (A),AW,,,SECOND STAGE LEAG R5,HA,CP,,,AW,,C. MATCH,,,,,\r\n21/02,Indoors,Northern,AW,CP,Ashington / T'dale,HA,,T'Dale / Morpeth,AW,,Morpeth away,AW,,Alnwick,HA,,PONTELAND,HG,,HG =1 HA =2,Jarrovarians,HA,CP,,AW,,Jarrovians,AW,,Training,HG,CP,Consett @ Wallsend,AW,,NORTH FEST ROCKCLIFF,,H,WATERFALL CUP,HG,,BACK UP,SECOND STAGE LEAG R6,AW,,,FRIENDLY ??,HA,CP,,,,,,\r\n28/02,Indoors,Training,HA,,Training,HG,,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,HG =3 HA =3,,HA,CP,Morpeth,AW,,COUNTY CUP,HG,,COUNTY CUP,AW,,Gateshead A,HA,CP,,,,,AW,,,,HG,,NAT CUP,,AW,,PUT / NAT,,,,,\r\n07/03,Training,Morpeth,AW,,Novos,AW,,Gosforth / Blyth,HA,CP,Tynedale away,AW,,Novos,HG,,PPARK,AW,,HG =1 HA =1,Training ,AW,,Training,HA,CP,Alnwick (H),AW,,Gosforth (A),HG,,,AW,,NORTH FEST,,,WATERFALL CUP FINAL,HA,CP,WF FINAL,WATERFALL CUP FINAL,AW,,WF FINAL,,HG,,,,,,,\r\n14/03,Training,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Percy Park,HA,CP,FNL,AW,,Ryton @ wallsend,HG,,TRI COUNTY FEST,,,,AW,,,SECOND STAGE LEAG R7,HA,CP,,,AW,,,North Allerton,,,,\r\n21/03,Training,COUNTY FEST.,AW,,COUNTY FEST.,AW,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,Ashington,HA,,MORPETH,AW,,HG =0 HA =1,,HG,,,AW,,Training?,AW,,,HA,CP,Novos (A),AW,,NORTH FEST GOSFORTH,,A,BISHOP AUCK (A),HG,,,,AW,,PDG / NAT,,HA,CP,NAT CUP,,,,,\r\n28/03,EASTER,,,,,,,,,,,,,,,,,,,,,HA,CP,Blaydon,AW,,,HG,,Blaydon,AW,,,HA,CP,GOOD FRIDAY MORPETH FESTIVAL - FRIDAY 26/03 ,,,,,,,,,,,,,,,,,,,\r\n04/04,Training,Novos,HA,,Northern,AW,,W'end / T'dale,HG,CP,Percy park home,HG,,Tynedale,HG,,1922,HA,CP,HG =3 HA =2,Percy Park,AW,,Tynedale,HA,CP,Ashington,AW,,Tynedale,HG,,,AW,,,,,,HA,CP,,,AW,,,,HG,,,,,,,\r\n11/04,Training,Training,HA,CP,Training,HG,,Training,HA,,Training,HG,,Training,HA,,Training,HG,,HG =3 HA =3,,AW,,Novos ,HG,,Northern,HA,CP,Ponteland,AW,,Novos @ wallsend,HG,,NORTH FEST ALNWICK,,A,,AW,,,,HA,CP,,,AW,,PUT,,,,,\r\n18/04,Training,Pont,AW,,Morpeth / Blyth,HA,CP,Novos,AW,,Percy park away,AW,,North Shields,AW,,MORPETH,AW,,HG =0 HA =1,Creighton,HG,,,AW,,Penrith (Tour?),AW,,? training,HA,CP,,AW,,,,,,HG,,,,AW,,PDG / NAT,,HA,CP,,,,,,\r\n25/04,Training,ALNWICK FEST.,,,ALNWICK FEST.,,,ALNWICK FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,HG =0 HA =0,Ponteland A,HA,CP,,AW,,,HG,,Tour,AW,,,HA,CP,,,,,AW,,,,HG,,,,AW,,,,,,,\r\n02/05,Training,Last train,HA,,Last train,HG,,Last train,HG,CP,Last train,HA,,Last train,HG,,GOSFORTH NEED TO BE AWAY,AW,,HG =3 HA =2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,AGP,12,,AGP,12,,AGP,12,,AGP,9,,AGP,12,,AGP,13,,,AGP,8,,AGP,7,,AGP,8,,AGP,9,,AGP,8,,AGP,0,,AGP,8,,,AGP,9,,,AGP,8,,,AGP,0,,AGP,0\r\n,,GRASS,12,,GRASS,9,,GRASS,11,,GRASS,12,,GRASS,11,,GRASS,8,,,GRASS,9,,GRASS,8,,GRASS,9,,GRASS,6,,GRASS,8,,GRASS,0,,GRASS,8,,,GRASS,6,,,GRASS,7,,,GRASS,0,,GRASS,0\r\n,,AWAY,7,,AWAY,10,,AWAY,8,,AWAY,10,,AWAY,8,,AWAY,10,,,AWAY,15,,AWAY,17,,AWAY,15,,AWAY,17,,AWAY,16,,AWAY,0,,AWAY,14,,,AWAY,16,,,AWAY,16,,,AWAY,0,,AWAY,0\r\n,,,31,,,31,,,31,,,31,,,31,,,31,,,,32,,,32,,,32,,,32,,,32,,,0,,,30,,,,31,,,,31,,,,0,,,0\r\n,,CAR PARK,4,,CAR PARK,6,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,,CAR PARK,8,,CAR PARK,7,,CAR PARK,8,,CAR PARK,10,,CAR PARK,8,,CAR PARK,0,,CAR PARK,8,,,CAR PARK,0,,,CAR PARK,0,,,CAR PARK,0,,CAR PARK,0";
-const SNAPSHOT_DATE = "5 Oct 22:07";   // when the embedded sheet copy was taken (set by refresh.py)
+const SNAPSHOT_DATE = "5 Oct 22:15";   // when the embedded sheet copy was taken (set by refresh.py)
 
 /* ============================ UTIL ============================ */
 const $ = s => document.querySelector(s);
@@ -259,6 +269,26 @@ async function load(){
 }
 
 /* ============================ MODEL ============================ */
+function buildRooms(items){
+  const C = CONFIG, reqs = [], clashes = [];
+  const need = items.filter(i=>i.surface && C.ROOM_GROUPS.includes(i.group) && C.ROOM_KINDS.includes(i.kind));
+  const order = g => C.ROOM_GROUPS.indexOf(g);
+  for (const day of DAYS){
+    const list = need.filter(i=>i.day===day).sort((a,b)=>slotById(a.slot).e-slotById(b.slot).e || order(a.group)-order(b.group) || a.team.localeCompare(b.team));
+    const busy = {};                                         // room number -> time it is free again
+    for (const side of ['home','away']){
+      for (const i of list){
+        const start = slotById(i.slot).e, end = start + C.ROOM_CHANGE_MIN, block = end + C.ROOM_TURNAROUND_MIN;
+        const room = C.ROOMS[side].find(r => (busy[r] ?? -1) <= start);
+        const req = {item:i, side, day, start, end, block, room: room ?? null, label: side==='home' ? i.team : (i.act || 'Opponent')};
+        if (room != null) busy[room] = block; else { req.freeAt = Math.min(...C.ROOMS[side].map(r=>busy[r])); i[side==='home' ? 'roomClashHome' : 'roomClashAway'] = true; clashes.push(req); }
+        i[side==='home' ? 'roomHome' : 'roomAway'] = room ?? null;
+        reqs.push(req);
+      }
+    }
+  }
+  return {reqs, clashes};
+}
 function modelFor(sat){
   const items = [];
   for (const it of DATA.items){
@@ -284,8 +314,9 @@ function modelFor(sat){
     });
     if (multi) shared.push({day:list[0].day, surface, slot:list[0].slot, items:list, total, over:tooMany});
   }
+  const rooms = buildRooms(items);
   return {
-    items, shared,
+    items, shared, roomReqs: rooms.reqs, roomClashes: rooms.clashes,
     over: items.filter(i=>i.over),
     unconfirmed: items.filter(i=>i.unconfirmed),
     mismatch: items.filter(i=>i.mismatch),
@@ -317,6 +348,7 @@ function badges(i){
   let h='';
   if (i.sharedWith && i.sharedWith.length) h+=`<span class="pill sh">Shared pitch</span>`;
   if (i.over) h+=`<span class="pill bad">Over capacity</span>`;
+  if (i.roomClashHome || i.roomClashAway) h+=`<span class="pill bad">No room free</span>`;
   if (i.cp) h+=`<span class="pill cp">Car park</span>`;
   if (i.unconfirmed) h+=`<span class="pill warn">Unconfirmed</span>`;
   return h;
@@ -358,6 +390,30 @@ function dayGrid(M, day){
   }
   return h + `</div>`;
 }
+function roomGrid(M, day){
+  const reqs = M.roomReqs.filter(r=>r.day===day && passes(r.item));
+  if (!reqs.length) return '';
+  const hpx = (parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60) * 1.7;   // taller rows: change windows are short
+  const t0 = Math.floor(Math.min(...reqs.map(r=>r.start))/60)*60, t1 = Math.ceil(Math.max(...reqs.map(r=>r.block))/60)*60;
+  const hours = (t1-t0)/60;
+  const nums = [...CONFIG.ROOMS.home.map(n=>({n,side:'home'})), ...CONFIG.ROOMS.away.map(n=>({n,side:'away'}))].sort((a,b)=>a.n-b.n);
+  const clash = reqs.filter(r=>r.room==null);
+  const cols = nums.map(c=>({...c, list:reqs.filter(r=>r.room===c.n)}));
+  if (clash.length) cols.push({n:0, side:'none', list:clash});
+  const blk = (r, c) => {
+    const top = (r.start-t0)/60*hpx+1, h1 = (r.end-r.start)/60*hpx-2, h2 = (r.block-r.end)/60*hpx;
+    const bad = c.side==='none';
+    return `<div class="blk ${bad?'over':''}" style="top:${top}px;height:${Math.max(h1,20)}px;left:2px;width:calc(100% - 4px);background:${colourFor(r.item.group)}"
+        title="${esc(r.label)} · change ${fmtT(r.start)}–${fmtT(r.end)}${bad?' · no room free':''}"><b>${bad?'<span class="tag ov">NO ROOM</span>':''}${esc(r.label)}</b><span class="sub">${r.side==='home'?'Home':'Away'} · ${fmtT(r.start)}–${fmtT(r.end)}</span></div>` +
+      `<div class="blk tail" style="top:${top+Math.max(h1,20)+2}px;height:${Math.max(h2-2,6)}px;left:2px;width:calc(100% - 4px)" title="Turnaround until ${fmtT(r.block)}"></div>`;
+  };
+  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(()=>'minmax(120px,1fr)').join(' ')}">`;
+  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead ${c.side==='none'?'over':''}">${c.side==='none'?'No room free':'Room '+c.n}<small>${c.side==='none'?'Needs a room':(c.side==='home'?'Home':'Away')}</small></div>`).join('');
+  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
+  for (const c of cols) h += `<div class="col" style="height:${hours*hpx}px">${c.list.map(r=>blk(r,c)).join('')}</div>`;
+  h += `</div>`;
+  return `<div class="dayhead sub">Changing rooms <small class="status">(teams arrive ready to play and change after the match)</small></div><div class="gridwrap">${h}</div>`;
+}
 function dayStrip(M, day){
   const home = M.items.filter(i=>i.day===day && i.surface), cp = M.cp(day);
   const sh = M.shared.filter(s=>s.day===day);
@@ -365,11 +421,18 @@ function dayStrip(M, day){
     (cp.length?`<span>Car park marshals: <b>${cp.map(i=>esc(i.team)).join(', ')}</b></span>`:'') + `</div>`;
 }
 function dayTitle(day){ const d=addDays(S.sat,DAY_OFF[day]); return `${DAY_NAME[day]} ${d.getDate()}/${d.getMonth()+1}`; }
+function roomLine(i){
+  if (i.roomHome===undefined && i.roomAway===undefined) return '';
+  const when = `${fmtT(slotById(i.slot).e)}–${fmtT(slotById(i.slot).e+CONFIG.ROOM_CHANGE_MIN)}`;
+  const part = (room, who) => room==null ? `<b class="bad-text">${who}: no room free</b>` : `${who}: Room ${room}`;
+  return `<br><small class="status">Changing after the match (${when}): ${part(i.roomHome,'home')}, ${part(i.roomAway,'away')}</small>`;
+}
 function agendaDay(M, day){
   const all = M.items.filter(i=>i.day===day && passes(i));
   const row = (i, dim) => `<div class="row ${dim?'dim':''}"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'Opponent TBC')}${i.extra?` <small class="status">(${esc(i.extra)})</small>`:''}
     ${i.surface?` · ${posLabel(i)} · ${sizeLabel(i)}`:''}${badges(i)}
-    ${i.sharedWith&&i.sharedWith.length?`<br><small class="status">Sharing with ${i.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}</span></div>`;
+    ${i.sharedWith&&i.sharedWith.length?`<br><small class="status">Sharing with ${i.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}
+    ${roomLine(i)}</span></div>`;
   let h = '';
   for (const s of CONFIG.SLOTS){
     const list = all.filter(i=>i.surface && i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface)||a.cols[0]-b.cols[0]);
@@ -389,13 +452,15 @@ function issuesPanel(M){
   const bv = M.badVenue.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" has venue "${esc(i.badVenue)}" (expected HG, HA or AW)</li>`).join('');
   const un = M.unconfirmed.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)}, "${esc(i.act)}"</li>`).join('');
   const mm = M.mismatch.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue}, but the name suggests ${i.venue==='AW'?'home':'away'}</li>`).join('');
+  const rc = M.roomClashes.map(r=>`<li><b>${dayTitle(r.day)}</b> ${fmtT(r.start)}: ${esc(r.item.team)} ${r.side==='home'?'(home team)':'(opponent '+esc(r.label)+')'} has no free ${r.side} changing room; rooms ${CONFIG.ROOMS[r.side].join(' and ')} are busy until ${fmtT(r.freeAt)}</li>`).join('');
   let h = '';
+  if (rc) h += `<h2>Changing room clashes (${M.roomClashes.length})</h2><ul>${rc}</ul>`;
   if (ov) h += `<h2>Over capacity (${M.over.length})</h2><ul>${ov}</ul>`;
   if (sh) h += `<h2 style="margin-top:10px">Shared pitches (${M.shared.length})</h2><ul>${sh}</ul>`;
   if (mm || bv) h += `<h2 style="margin-top:10px">Check the sheet (${M.mismatch.length+M.badVenue.length})</h2><ul>${mm}${bv}</ul>`;
   if (un) h += `<h2 style="margin-top:10px">Unconfirmed (${M.unconfirmed.length})</h2><ul>${un}</ul>`;
-  if (!h) h = `<span class="ok">No shared pitches, capacity problems or unconfirmed games this weekend.</span>`;
-  return `<div class="panel">${h}<p>Time slots and pitch positions are worked out from the age group and pitch size; the sheet doesn't hold kick-off times. Each surface is one full pitch in two halves. A full-size team on its own takes both halves; with another team it takes one half.</p></div>`;
+  if (!h) h = `<span class="ok">No shared pitches, capacity or changing-room problems, or unconfirmed games this weekend.</span>`;
+  return `<div class="panel">${h}<p>Time slots and pitch positions are worked out from the age group and pitch size; the sheet doesn't hold kick-off times. Changing rooms are booked after the match for ${CONFIG.ROOM_CHANGE_MIN} min plus ${CONFIG.ROOM_TURNAROUND_MIN} min turnaround, from the end of the derived slot; home teams use rooms ${CONFIG.ROOMS.home.join(' and ')}, away teams ${CONFIG.ROOMS.away.join(' and ')}. Each surface is one full pitch in two halves. A full-size team on its own takes both halves; with another team it takes one half.</p></div>`;
 }
 function render(){
   const M = modelFor(S.sat), tv = document.body.classList.contains('tv');
@@ -412,10 +477,11 @@ function render(){
     Object.keys(SURF).map(k=>`<button class="chip" data-s="${k}" aria-pressed="${S.surf.has(k)}">${SURF[k]}</button>`).join('') +
     Object.keys(GROUP_LABEL).map(k=>`<button class="chip" data-g="${k}" aria-pressed="${S.grp.has(k)}">${GROUP_LABEL[k]}</button>`).join('') +
     (M.shared.length?`<span class="chip static share">${M.shared.length} shared</span>`:'') +
-    (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'');
+    (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'') +
+    (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'');
   let h = '';
-  if (S.view==='day') h = `<div class="dayhead">${dayTitle(S.day)}</div>${dayStrip(M,S.day)}<div class="gridwrap">${dayGrid(M,S.day)}</div>`;
-  else if (S.view==='weekend') h = DAYS.map(d=>`<div class="dayhead">${dayTitle(d)}</div>${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>`).join('');
+  if (S.view==='day') h = `<div class="dayhead">${dayTitle(S.day)}</div>${dayStrip(M,S.day)}<div class="gridwrap">${dayGrid(M,S.day)}</div>${roomGrid(M,S.day)}`;
+  else if (S.view==='weekend') h = DAYS.map(d=>`<div class="dayhead">${dayTitle(d)}</div>${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${roomGrid(M,d)}`).join('');
   else h = `<div class="agenda">${DAYS.map(d=>agendaDay(M,d)).join('')}</div>`;
   $('#main').innerHTML = h + (tv ? '' : issuesPanel(M));
 }
