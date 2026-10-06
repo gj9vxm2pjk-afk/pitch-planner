@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekend Pitch Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap">
+<style>
+:root{
+  /* Whitley Bay Rockcliff RFC: cardinal red, club gold, cream */
+  --bg:#f7f0e0; --surface:#ffffff; --text:#1f1416; --muted:#6b5a5c; --line:#e3d6c0;
+  --brand:#c41e3a; --brand-ink:#ffffff; --gold:#f2b705;
+  --accent:#c41e3a; --accent-ink:#ffffff; --danger:#a8141f; --warn:#8a6200; --share:#2a5fa8;
+  --hour:60px;
+  --display:'Oswald','Arial Narrow','Helvetica Neue',Impact,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a0f11; --surface:#26171a; --text:#f4ece0; --muted:#bba8aa; --line:#3d2a2d;
+    --brand:#8e1428; --brand-ink:#ffffff; --gold:#f2b705;
+    --accent:#d63a52; --accent-ink:#ffffff; --danger:#ff7a86; --warn:#f2b705; --share:#7fb0f0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a0f11; --surface:#26171a; --text:#f4ece0; --muted:#bba8aa; --line:#3d2a2d;
+  --brand:#8e1428; --brand-ink:#ffffff; --gold:#f2b705;
+  --accent:#d63a52; --accent-ink:#ffffff; --danger:#ff7a86; --warn:#f2b705; --share:#7fb0f0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header.brand{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--brand);color:var(--brand-ink);border-bottom:4px solid var(--gold)}
+header.brand .crest{height:46px;width:auto;flex:none;background:#fff;border-radius:8px;padding:3px}
+header.brand .names{flex:1 1 12rem;min-width:0}
+.club{font:600 .78rem/1.1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+h1{font:600 1.45rem/1.15 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0}
+header.brand .status{color:var(--brand-ink);opacity:.85}
+.status{font-size:.8rem;color:var(--muted)}
+.banner{margin:8px 16px;padding:8px 12px;border-radius:8px;font-size:.88rem;background:color-mix(in srgb,var(--danger) 14%,var(--surface));border:1px solid var(--danger)}
+.banner.info{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border-color:var(--warn)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+button,select,input{font:inherit;color:inherit}
+.seg button{border:0;background:none;padding:7px 12px;cursor:pointer;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
+.wk{font-weight:600;min-width:11ch;text-align:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 10px;font-size:.82rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip.static{cursor:default}
+.chip.bad{border-color:var(--danger);color:var(--danger)}
+.chip.share{border-color:var(--share);color:var(--share)}
+main{padding:0 16px 32px}
+.dayhead{font:600 1.05rem/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px}
+.strip{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:0 0 8px}
+.strip b{color:var(--text)}
+.dayhead.sub{font-size:.95rem;margin-top:16px}
+.blk.tail{background:transparent;border:1px dashed var(--line);color:var(--muted);padding:0}
+.bad-text{color:var(--danger)}
+.mcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}
+.mcard header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.mcard h3{margin:0;font-size:.95rem}
+pre.msg{margin:0;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.mintro{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:12px 0}
+.mintro p{margin:0;font-size:.88rem;color:var(--muted);flex:1 1 20rem}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+details.allmsg{margin:12px 0}
+.msgbox{display:block;width:100%;min-height:55vh;resize:vertical;margin:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+details.allmsg summary{cursor:pointer;color:var(--muted);font-size:.88rem}
+.gridwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:78vh}
+.grid{display:grid;position:relative;min-width:max-content}
+.corner,.colhead{position:sticky;top:0;z-index:4;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 6px;font-weight:600;font-size:.85rem;text-align:center}
+.colhead small{display:block;font-weight:400;color:var(--muted)}
+.colhead .halves{display:flex;margin:4px -6px -8px;border-top:1px solid var(--line)}
+.colhead .halves span{flex:1;padding:2px 0}
+.colhead .halves span+span{border-left:1px solid var(--line)}
+.col.halved{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,transparent calc(50% - .5px),var(--line) calc(50% - .5px),var(--line) calc(50% + .5px),transparent calc(50% + .5px));background-size:100% var(--hour),100% 100%}
+.corner{left:0;z-index:5}
+.times{position:sticky;left:0;z-index:3;background:var(--surface);border-right:1px solid var(--line)}
+.times div{height:var(--hour);font-size:.74rem;color:var(--muted);padding:2px 6px;border-top:1px solid var(--line)}
+.col{position:relative;border-left:1px solid var(--line);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% var(--hour)}
+.blk{position:absolute;border-radius:6px;padding:3px 5px;font-size:.76rem;line-height:1.25;overflow:hidden;
+  color:#101410;border:1px solid rgba(0,0,0,.25)}
+.blk b{display:block;overflow-wrap:anywhere}
+.blk .sub{opacity:.85;overflow-wrap:anywhere}
+.blk.shared{border-style:dashed;border-width:2px;border-color:var(--share)}
+.blk.over{outline:3px solid var(--danger);outline-offset:-1px;background-image:repeating-linear-gradient(45deg,rgba(192,38,45,.2) 0 6px,transparent 6px 12px)}
+.tag{display:inline-block;font-weight:700;font-size:.68rem;border-radius:4px;padding:0 4px;margin-right:3px;background:rgba(255,255,255,.7);color:#10161a}
+.tag.sh{color:#1b4a8c} .tag.ov{color:#a01b22}
+.agenda .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}
+.agenda .card h3{margin:0;padding:8px 12px;font:600 1rem/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.agenda h4{margin:0;padding:6px 12px;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:color-mix(in srgb,var(--muted) 8%,var(--surface))}
+.row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row.dim{color:var(--muted)}
+.row .t{color:var(--muted);font-size:.9rem}
+.pill{display:inline-block;border-radius:99px;padding:0 8px;font-size:.74rem;margin-left:6px;border:1px solid currentColor;white-space:nowrap}
+.pill.bad{color:var(--danger)} .pill.warn{color:var(--warn)} .pill.sh{color:var(--share)} .pill.cp{color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}
+.panel h2{font-size:.95rem;margin:0 0 6px}
+.panel ul{margin:0;padding-left:18px}
+.panel p{margin:8px 0 0;font-size:.82rem;color:var(--muted)}
+.ok{color:var(--accent)}
+input[type=search]{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-height:36px;width:180px;max-width:100%}
+body.tv{font-size:20px;--hour:84px}
+body.tv header.brand .crest{height:64px}
+body.tv .bar>*{display:none}
+body.tv .bar #copyBar{display:none}
+@media (max-width:700px){ .wk{min-width:9ch} .row{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header class="brand">
+  <img class="crest" src="__CREST__" alt="Whitley Bay Rockcliff RFC crest">
+  <div class="names"><div class="club">Whitley Bay Rockcliff RFC</div><h1>Weekend Pitch Planner</h1></div>
+  <span class="status" id="status" role="status"></span>
+</header>
+<div id="banners"></div>
+<div class="bar" id="bar">
+  <div class="seg" id="viewSeg" role="group" aria-label="View">
+    <button data-v="day">Pitches</button><button data-v="weekend">Weekend</button><button data-v="agenda">Agenda</button><button data-v="message">Message</button>
+  </div>
+  <div class="seg" id="daySeg" role="group" aria-label="Day">
+    <button data-d="fri">Fri eve</button><button data-d="sat">Sat</button><button data-d="sun">Sun</button>
+  </div>
+  <button class="btn" id="prev" aria-label="Previous weekend">&larr;</button>
+  <span class="wk" id="wk"></span>
+  <button class="btn" id="next" aria-label="Next weekend">&rarr;</button>
+  <button class="btn" id="today">This weekend</button>
+  <button class="btn primary" id="copyBar">Copy message</button>
+  <input type="search" id="q" placeholder="Search team…" aria-label="Search team">
+</div>
+<div class="chips" id="chips"></div>
+<main id="main"></main>
+
+<script>
+/* ============================ CONFIG ============================
+ * To connect the club sheet ("WBR Age Grade Fixtures 26/27"):
+ *  1. Google Sheets: File > Share > Publish to web. Pick the "Combined Fixture list" tab,
+ *     choose "Comma-separated values (.csv)", Publish. Copy the link into FIXTURES_CSV_URL.
+ *     Repeat for the "Config and info" tab (optional) into CONFIG_CSV_URL.
+ *     (Anyone with a published link can read that tab.)
+ *  2. Leave FIXTURES_CSV_URL as '' to show the built-in snapshot.
+ *
+ * Sheet layout this page understands: row 1 = group, row 2 = team, column A = date (DD/MM).
+ * Each team has: [opponent/activity] [HG home grass | HA home AGP | AW away] [CP car-park duty].
+ */
+const CONFIG = {
+  FIXTURES_CSV_URL: '',
+  CONFIG_CSV_URL: '',
+  REFRESH_MINUTES: 5,
+  TV_CYCLE_SECONDS: 15,
+  SEASON_START: '2026-08-02',               // used to give DD/MM dates a year (overridden by the Config tab)
+  // Each surface is one full pitch shown as two halves (Grass 1 + Grass 2, AGP 1 + AGP 2).
+  // A full-pitch team takes both halves; smaller teams share them.
+  CAPACITY: { grass: 1, agp: 1 },            // full pitches per surface
+  // Changing rooms: in each time slot the home teams are ranked by seniority (age group). The most senior
+  // teams get rooms 1 and 3, the least senior get rooms 2 and 4. Teams arrive ready to play and change after
+  // the match; a room is booked from match end for ROOM_CHANGE_MIN, then needs ROOM_TURNAROUND_MIN.
+  ROOMS: { senior: [1, 3], junior: [2, 4] },
+  MESSAGE_SIGNOFF: '[Coordinator name]',   // used in the weekend message
+  ROOM_CHANGE_MIN: 30,
+  ROOM_TURNAROUND_MIN: 30,
+  ROOM_GROUPS: ['JUNIOR BOYS', 'JUNIOR GIRLS', 'WOMEN'],   // minis don't book rooms
+  ROOM_KINDS: ['match'],                                    // add 'session' to book rooms for training too
+  OVERRUN: 0.34,                             // allowance before flagging; 0.34 lets 1/3 + 1/2 + 1/2 fit, as the Pitch Usage tab plans
+  SLOTS: [
+    { id: 'a', s: 9*60,      e: 10*60+30 },
+    { id: 'b', s: 10*60+30,  e: 12*60+30 },
+    { id: 'c', s: 12*60+30,  e: 15*60 }
+  ],
+  // Slot by sheet group: MINIS in the first slot, JUNIOR BOYS second, everything else third.
+  SLOT_BY_GROUP: { 'MINIS': 'a', 'JUNIOR BOYS': 'b' },
+  SLOT_BY_TEAM: { 'Colts': 'c' },            // per-team overrides win over group
+  // Minimum pitch share per team (from the sheet's "Config and info" tab; used if that tab isn't linked).
+  PITCH_SHARE: { 'U6': 1/3, 'U7': 1/3, 'U8': 1/3, 'U9': 1/3, 'U10': 1/3, 'U11': 1/2, 'U12 Boys': 1/2, 'U12 Girls': 1/2,
+                 'U13 Boys': 1, 'U13 Girls': 1, 'U14 Boys': 1, 'U15 Boys': 1, 'U16 Boys': 1, 'U16 Girls': 1, 'Colts': 1 },
+  DEFAULT_SHARE: 1
+};
+const SAMPLE_CSV = /*SAMPLE_CSV*/"";
+const SNAPSHOT_DATE = /*SNAPSHOT_DATE*/"";   // when the embedded sheet copy was taken (set by refresh.py)
+
+/* ============================ UTIL ============================ */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmtT = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DAYS = ['fri','sat','sun'], DAY_NAME = {fri:'Friday evening',sat:'Saturday',sun:'Sunday'}, DAY_OFF = {fri:-1,sat:0,sun:1};
+const SURF = { grass:'Grass', agp:'AGP' };
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function upcomingSaturday(){
+  const t = new Date(); t.setHours(0,0,0,0); const dow = t.getDay();
+  return dow === 6 ? t : dow === 0 ? addDays(t,-1) : addDays(t, 6-dow);
+}
+function parseCSV(text){
+  const rows=[]; let row=[], f='', q=false;
+  for (let i=0;i<text.length;i++){
+    const c=text[i];
+    if (q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if (c==='"') q=true;
+    else if (c===','){ row.push(f); f=''; }
+    else if (c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(f); f=''; rows.push(row); row=[]; }
+    else f+=c;
+  }
+  if (f!==''||row.length){ row.push(f); rows.push(row); }
+  return rows;
+}
+function dayKeyFor(date, sat){
+  const diff = Math.round((date - sat)/86400000);
+  return diff===-1?'fri':diff===0?'sat':diff===1?'sun':null;
+}
+function fracLabel(f){ return f>=0.99 ? 'Full pitch' : Math.abs(f-1/2)<.01 ? '1/2 pitch' : Math.abs(f-1/3)<.01 ? '1/3 pitch' : Math.round(f*100)+'%'; }
+function groupKey(g){ const u=String(g||'').toUpperCase(); return u.includes('MINI')?'MINIS':u.includes('BOYS')?'JUNIOR BOYS':u.includes('GIRLS')?'JUNIOR GIRLS':'WOMEN'; }
+const GROUP_LABEL = {MINIS:'Minis','JUNIOR BOYS':'Junior boys','JUNIOR GIRLS':'Junior girls',WOMEN:'Women'};
+const GROUP_HUE = {MINIS:95,'JUNIOR BOYS':200,'JUNIOR GIRLS':325,WOMEN:35};
+const colourFor = g => `hsl(${GROUP_HUE[g]??150} 62% 78%)`;
+function cleanTeam(t){ return t.replace(/\s+/g,' ').trim().replace(/^(U\d+)s$/i,'$1'); }
+
+/* ============================ SHEET PARSING ============================ */
+const SESSION_RE = /^\??\s*(pre-?season|training|indoors|joint training)/i;
+function parseGrid(rows){
+  const isDate = v => /^\s*\d{1,2}\/\d{1,2}\s*$/.test(v||'');
+  const first = rows.findIndex(r => isDate(r[0]));
+  if (first < 2) throw new Error('could not find the team headers or dates');
+  const gRow = rows[first-2], tRow = rows[first-1];
+  const width = Math.max(...rows.map(r=>r.length));
+  const blocks=[]; let group='', lastT='';
+  for (let c=1;c<width;c++){
+    const g=(gRow[c]||'').trim(), t=(tRow[c]||'').trim();
+    if (g) group=g;
+    if (t && t!==lastT){ blocks.push({team:cleanTeam(t), group:groupKey(group), cols:[c]}); lastT=t; }
+    else if (blocks.length) blocks[blocks.length-1].cols.push(c);
+  }
+  const season = new Date(CONFIG.SEASON_START+'T00:00:00');
+  const items=[];
+  for (const row of rows.slice(first)){
+    if (!isDate(row[0])) continue;
+    const [d,m] = row[0].trim().split('/').map(Number);
+    const date = new Date(season.getFullYear() + (m-1 < season.getMonth() ? 1 : 0), m-1, d);
+    for (const b of blocks){
+      const act = (row[b.cols[0]]||'').trim();
+      const vr = b.cols[1]!=null ? (row[b.cols[1]]||'').trim().toUpperCase() : '';
+      const venue = ['HG','HA','AW'].includes(vr) ? vr : '';
+      const badVenue = vr && !venue ? vr : '';
+      const cp = b.cols[2]!=null && /^cp$/i.test((row[b.cols[2]]||'').trim());
+      const extra = b.cols.slice(3).map(c=>(row[c]||'').trim()).filter(v=>v && !/^HG\s*=/i.test(v)).join(' · ');
+      if (!act && !venue) continue;
+      let kind;
+      if (venue==='AW') kind='away';
+      else if (venue) kind = SESSION_RE.test(act) ? 'session' : /fest/i.test(act) ? 'festival' : 'match';
+      else kind = SESSION_RE.test(act) ? 'training' : /fest/i.test(act) ? 'festival-off' : 'other';
+      items.push({date, team:b.team, group:b.group, act, venue, badVenue, cp, extra, kind,
+        surface: venue==='HG'?'grass':venue==='HA'?'agp':'',
+        unconfirmed: /\?/.test(act),
+        mismatch: (venue && venue!=='AW' && /\(A\)|\baway\b/i.test(act)) || (venue==='AW' && /\(H\)|\(home|\bhome\b/i.test(act))});
+    }
+  }
+  return items;
+}
+function applyConfigRows(rows){
+  for (const r of rows){
+    if (/season start/i.test(r[0]||'') && /^\d{4}-\d{2}-\d{2}/.test(r[1]||'')) CONFIG.SEASON_START = r[1].trim().slice(0,10);
+    const team = cleanTeam(r[3]||''), size = (r[4]||'').trim();
+    if (team && /pitch/i.test(size)){
+      CONFIG.PITCH_SHARE[team] = /full/i.test(size) ? 1 : /1\/2/.test(size) ? 1/2 : /1\/3/.test(size) ? 1/3 : 1;
+    }
+  }
+}
+const shareOf = team => CONFIG.PITCH_SHARE[team] ?? CONFIG.DEFAULT_SHARE;
+const slotIdFor = it => CONFIG.SLOT_BY_TEAM[it.team] || CONFIG.SLOT_BY_GROUP[it.group] || 'c';
+const slotById = id => CONFIG.SLOTS.find(s=>s.id===id);
+
+/* ============================ DATA ============================ */
+let DATA = {items:[], sample:false}, LAST_OK = null, ERROR = '';
+async function fetchRows(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if (!r.ok) throw new Error('HTTP '+r.status);
+  return parseCSV(await r.text());
+}
+async function load(){
+  try{
+    if (!CONFIG.FIXTURES_CSV_URL){
+      DATA = {items: parseGrid(parseCSV(SAMPLE_CSV)), sample:true};
+    } else {
+      if (CONFIG.CONFIG_CSV_URL) applyConfigRows(await fetchRows(CONFIG.CONFIG_CSV_URL));
+      DATA = {items: parseGrid(await fetchRows(CONFIG.FIXTURES_CSV_URL)), sample:false};
+    }
+    LAST_OK = new Date(); ERROR='';
+  }catch(e){ ERROR = 'Could not refresh the sheet (' + e.message + '). Showing the last good data.'; }
+  autoDay(); render();
+}
+
+/* ============================ MODEL ============================ */
+// How senior a team is: bigger = more senior (Women's 1st XV, 2nd XV, then by age group; Colts count as 17)
+function seniority(team){
+  if (/1st XV/i.test(team)) return 200;
+  if (/2nd XV/i.test(team)) return 199;
+  if (/colts/i.test(team)) return 17;
+  const m = team.match(/U\s?(\d+)/i);
+  return m ? +m[1] : 0;
+}
+function buildRooms(items){
+  const C = CONFIG, reqs = [], clashes = [];
+  const order = [...C.ROOMS.senior, ...C.ROOMS.junior];          // most senior team picks first: 1, 3, then 2, 4
+  const need = items.filter(i=>i.surface && C.ROOM_GROUPS.includes(i.group) && C.ROOM_KINDS.includes(i.kind));
+  for (const day of DAYS){
+    const list = need.filter(i=>i.day===day).sort((a,b)=>slotById(a.slot).e-slotById(b.slot).e || seniority(b.team)-seniority(a.team) || a.team.localeCompare(b.team));
+    const busy = {};                                         // room number -> time it is free again
+    for (const i of list){
+      const start = slotById(i.slot).e, end = start + C.ROOM_CHANGE_MIN, block = end + C.ROOM_TURNAROUND_MIN;
+      const room = order.find(r => (busy[r] ?? -1) <= start);
+      const req = {item:i, day, start, end, block, room: room ?? null, label:i.team};
+      if (room != null) busy[room] = block;
+      else { req.freeAt = Math.min(...order.map(r=>busy[r])); i.roomClash = true; clashes.push(req); }
+      i.room = room ?? null;
+      reqs.push(req);
+    }
+  }
+  return {reqs, clashes};
+}
+function modelFor(sat){
+  const items = [];
+  for (const it of DATA.items){
+    const day = dayKeyFor(it.date, sat); if (!day) continue;
+    items.push({...it, day, slot: slotIdFor(it), frac: shareOf(it.team)});
+  }
+  // allocate home teams within each surface + slot: full pitch = both halves, smaller teams share the halves
+  const groups = {};
+  items.filter(i=>i.surface).forEach(i => (groups[i.day+'|'+i.surface+'|'+i.slot] ||= []).push(i));
+  const shared = [];
+  for (const k in groups){
+    const list = groups[k].slice();
+    const surface = list[0].surface, limit = CONFIG.CAPACITY[surface] + CONFIG.OVERRUN + 1e-6, multi = list.length > 1;
+    // a full-size team alone takes the whole pitch; with anyone else it takes one half
+    list.forEach(i => { i.eff = (i.frac >= 0.99 && multi) ? 0.5 : i.frac; });
+    list.sort((a,b)=>b.eff-a.eff);
+    const load = [0,0], total = list.reduce((t,o)=>t+o.eff,0), tooMany = total > limit;
+    list.forEach(i=>{
+      i.groupTotal = total; i.over = tooMany;
+      if (i.eff >= 0.99){ i.cols = [0,1]; load[0]+=1; load[1]+=1; }
+      else { const c = load[0] <= load[1] ? 0 : 1; i.cols = [c]; load[c] += i.eff; }
+      i.sharedWith = list.filter(o=>o!==i);
+    });
+    if (multi) shared.push({day:list[0].day, surface, slot:list[0].slot, items:list, total, over:tooMany});
+  }
+  const rooms = buildRooms(items);
+  return {
+    items, shared, roomReqs: rooms.reqs, roomClashes: rooms.clashes,
+    over: items.filter(i=>i.over),
+    unconfirmed: items.filter(i=>i.unconfirmed),
+    mismatch: items.filter(i=>i.mismatch),
+    badVenue: items.filter(i=>i.badVenue),
+    cp: d => items.filter(i=>i.day===d && i.cp)
+  };
+}
+
+/* ============================ STATE ============================ */
+const S = { view:'day', day:'sun', sat:upcomingSaturday(), surf:new Set(), grp:new Set(), q:'', viewSet:false, dayPicked:false };
+const compact = () => matchMedia('(max-width:700px)').matches;
+function autoDay(){
+  if (S.dayPicked) return;
+  const M = modelFor(S.sat);
+  const d = ['sat','sun','fri'].find(k => M.items.some(i=>i.day===k && i.surface));
+  if (d) S.day = d;
+}
+function readHash(){
+  if (location.hash === '#tv') document.body.classList.add('tv'); else document.body.classList.remove('tv');
+  if (!S.viewSet) S.view = compact() ? 'agenda' : 'day';
+}
+const passes = i => (S.surf.size===0 || (i.surface && S.surf.has(i.surface))) && (S.grp.size===0 || S.grp.has(i.group)) &&
+  (!S.q || (i.team+' '+i.act).toLowerCase().includes(S.q.toLowerCase()));
+
+/* ============================ RENDER ============================ */
+const sizeLabel = i => (i.frac >= 0.99 && i.eff < 0.99) ? 'Half of pitch' : fracLabel(i.frac);
+const posLabel = i => i.cols.length>1 ? `${SURF[i.surface]} 1 + 2` : `${SURF[i.surface]} ${i.cols[0]+1}`;
+function badges(i){
+  let h='';
+  if (i.sharedWith && i.sharedWith.length) h+=`<span class="pill sh">Shared pitch</span>`;
+  if (i.over) h+=`<span class="pill bad">Over capacity</span>`;
+  if (i.roomClash) h+=`<span class="pill bad">No room free</span>`;
+  if (i.cp) h+=`<span class="pill cp">Car park</span>`;
+  if (i.unconfirmed) h+=`<span class="pill warn">Unconfirmed</span>`;
+  return h;
+}
+function dayGrid(M, day){
+  const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
+  const cols=[];
+  for (const surf of ['grass','agp']){
+    if (S.surf.size && !S.surf.has(surf)) continue;
+    const here = items.filter(i=>i.surface===surf);
+    const lanes = Math.max(1, ...CONFIG.SLOTS.flatMap(s=>[0,1].map(c=>here.filter(i=>i.slot===s.id && i.cols.length===1 && i.cols[0]===c).length)));
+    cols.push({surf, items:here, w:Math.max(280, lanes*2*96)});
+  }
+  if (!cols.length) return `<div class="panel">Nothing to show with the current filters.</div>`;
+  const t0 = CONFIG.SLOTS[0].s, t1 = CONFIG.SLOTS[CONFIG.SLOTS.length-1].e;
+  const hpx = parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60;
+  const hours = Math.ceil((t1-t0)/60);
+  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(c=>`minmax(${c.w}px,1fr)`).join(' ')}">`;
+  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead">${SURF[c.surf]} pitch<small class="halves"><span>${SURF[c.surf]} 1</span><span>${SURF[c.surf]} 2</span></small></div>`).join('');
+  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
+  for (const c of cols){
+    h += `<div class="col halved" style="height:${hours*hpx}px">`;
+    for (const s of CONFIG.SLOTS){
+      const inSlot = c.items.filter(i=>i.slot===s.id);
+      const place = (i, left, width) => {
+        const sh = i.sharedWith.length>0;
+        return `<div class="blk ${sh?'shared':''} ${i.over?'over':''}" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(i.group)}"
+          title="${esc(i.team)} · ${esc(i.act||'Opponent TBC')} · ${sizeLabel(i)} · ${posLabel(i)}${sh?' · shares with '+i.sharedWith.map(o=>esc(o.team)).join(', '):''}">
+          <b>${sh?'<span class="tag sh">SHARED</span>':''}${i.over?'<span class="tag ov">OVER</span>':''}${esc(i.team)}</b>
+          <span class="sub">${esc(i.act||'Opponent TBC')}</span><br><span class="sub">${posLabel(i)}${i.cp?' · <span class="tag">CP</span>':''}</span></div>`;
+      };
+      inSlot.filter(i=>i.cols.length>1).forEach(i => { h += place(i, 0, 100); });
+      for (const half of [0,1]){
+        const list = inSlot.filter(i=>i.cols.length===1 && i.cols[0]===half), w = 50/Math.max(list.length,1);
+        list.forEach((i,k) => { h += place(i, half*50 + k*w, w); });
+      }
+    }
+    h += `</div>`;
+  }
+  return h + `</div>`;
+}
+function roomGrid(M, day){
+  const reqs = M.roomReqs.filter(r=>r.day===day && passes(r.item));
+  if (!reqs.length) return '';
+  const hpx = (parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60) * 1.7;   // taller rows: change windows are short
+  const t0 = Math.floor(Math.min(...reqs.map(r=>r.start))/60)*60, t1 = Math.ceil(Math.max(...reqs.map(r=>r.block))/60)*60;
+  const hours = (t1-t0)/60;
+  const nums = [...CONFIG.ROOMS.senior.map(n=>({n,side:'senior'})), ...CONFIG.ROOMS.junior.map(n=>({n,side:'junior'}))].sort((a,b)=>a.n-b.n);
+  const clash = reqs.filter(r=>r.room==null);
+  const cols = nums.map(c=>({...c, list:reqs.filter(r=>r.room===c.n)}));
+  if (clash.length) cols.push({n:0, side:'none', list:clash});
+  const blk = (r, c) => {
+    const top = (r.start-t0)/60*hpx+1, h1 = (r.end-r.start)/60*hpx-2, h2 = (r.block-r.end)/60*hpx;
+    const bad = c.side==='none';
+    return `<div class="blk ${bad?'over':''}" style="top:${top}px;height:${Math.max(h1,20)}px;left:2px;width:calc(100% - 4px);background:${colourFor(r.item.group)}"
+        title="${esc(r.label)} · change ${fmtT(r.start)}–${fmtT(r.end)}${bad?' · no room free':''}"><b>${bad?'<span class="tag ov">NO ROOM</span>':''}${esc(r.label)}</b><span class="sub">${fmtT(r.start)}–${fmtT(r.end)}</span></div>` +
+      `<div class="blk tail" style="top:${top+Math.max(h1,20)+2}px;height:${Math.max(h2-2,6)}px;left:2px;width:calc(100% - 4px)" title="Turnaround until ${fmtT(r.block)}"></div>`;
+  };
+  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(()=>'minmax(120px,1fr)').join(' ')}">`;
+  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead ${c.side==='none'?'over':''}">${c.side==='none'?'No room free':'Room '+c.n}<small>${c.side==='none'?'Needs a room':'&nbsp;'}</small></div>`).join('');
+  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
+  for (const c of cols) h += `<div class="col" style="height:${hours*hpx}px">${c.list.map(r=>blk(r,c)).join('')}</div>`;
+  h += `</div>`;
+  return `<div class="dayhead sub">Changing rooms</div><div class="gridwrap">${h}</div>`;
+}
+function dayStrip(M, day){
+  const home = M.items.filter(i=>i.day===day && i.surface), cp = M.cp(day);
+  const sh = M.shared.filter(s=>s.day===day);
+  return `<div class="strip"><span><b>${home.length}</b> home sessions</span><span><b>${sh.length}</b> shared pitch${sh.length===1?'':'es'}</span>` +
+    (cp.length?`<span>Car park marshals: <b>${cp.map(i=>esc(i.team)).join(', ')}</b></span>`:'') + `</div>`;
+}
+function weekendRange(){
+  const f = addDays(S.sat,-1), u = addDays(S.sat,1), mo = d => d.toLocaleString('en-GB',{month:'short'});
+  return f.getMonth()===u.getMonth() ? `${f.getDate()}–${u.getDate()} ${mo(u)}` : `${f.getDate()} ${mo(f)}–${u.getDate()} ${mo(u)}`;
+}
+function dayTitle(day){ const d=addDays(S.sat,DAY_OFF[day]); return `${DAY_NAME[day]} ${d.getDate()}/${d.getMonth()+1}`; }
+function roomLine(i){
+  if (i.room===undefined) return '';
+  const when = `${fmtT(slotById(i.slot).e)}–${fmtT(slotById(i.slot).e+CONFIG.ROOM_CHANGE_MIN)}`;
+  return `<br><small class="status">Changing after the match (${when}): ${i.room==null ? '<b class="bad-text">no room free</b>' : 'Room '+i.room}</small>`;
+}
+function agendaDay(M, day){
+  const all = M.items.filter(i=>i.day===day && passes(i));
+  const row = (i, dim) => `<div class="row ${dim?'dim':''}"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'Opponent TBC')}${i.extra?` <small class="status">(${esc(i.extra)})</small>`:''}
+    ${i.surface?` · ${posLabel(i)} · ${sizeLabel(i)}`:''}${badges(i)}
+    ${i.sharedWith&&i.sharedWith.length?`<br><small class="status">Sharing with ${i.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}
+    ${roomLine(i)}</span></div>`;
+  let h = '';
+  for (const s of CONFIG.SLOTS){
+    const list = all.filter(i=>i.surface && i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface)||a.cols[0]-b.cols[0]);
+    if (list.length) h += `<h4>${fmtT(s.s)}–${fmtT(s.e)} · at the club</h4>` + list.map(i=>row(i)).join('');
+  }
+  const away = all.filter(i=>i.kind==='away' || i.kind==='festival-off');
+  if (away.length) h += `<h4>Away or off site</h4>` + away.map(i=>row(i)).join('');
+  const other = all.filter(i=>i.kind==='other');
+  if (other.length) h += `<h4>Notes</h4>` + other.map(i=>row(i)).join('');
+  const tr = all.filter(i=>i.kind==='training');
+  if (tr.length) h += `<h4>Training, no fixture</h4>` + tr.map(i=>row(i,true)).join('');
+  return `<section class="card"><h3>${dayTitle(day)}</h3>${h || '<div class="row"><span class="status">Nothing scheduled</span></div>'}</section>`;
+}
+function issuesPanel(M){
+  const sh = M.shared.map(s=>`<li><b>${dayTitle(s.day)}</b>, ${SURF[s.surface]} pitch, ${fmtT(slotById(s.slot).s)}–${fmtT(slotById(s.slot).e)}: ${s.items.map(i=>`${esc(i.team)} (${sizeLabel(i).replace(' pitch','').replace('Half of','1/2')}, ${posLabel(i).replace(SURF[s.surface]+' ','')})`).join(' + ')}</li>`).join('');
+  const ov = M.over.map(i=>`<li><b>${dayTitle(i.day)}</b> ${fmtT(slotById(i.slot).s)}: ${esc(i.team)} clashes on the ${SURF[i.surface]} pitch: the ${fmtT(slotById(i.slot).s)} slot needs ${i.groupTotal.toFixed(2).replace(/\.?0+$/,'')} pitches, only 1 available</li>`).join('');
+  const bv = M.badVenue.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" has venue "${esc(i.badVenue)}" (expected HG, HA or AW)</li>`).join('');
+  const un = M.unconfirmed.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)}, "${esc(i.act)}"</li>`).join('');
+  const mm = M.mismatch.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue}, but the name suggests ${i.venue==='AW'?'home':'away'}</li>`).join('');
+  const rc = M.roomClashes.map(r=>`<li><b>${dayTitle(r.day)}</b> ${fmtT(r.start)}: ${esc(r.item.team)} has no free changing room; all rooms are busy until ${fmtT(r.freeAt)}</li>`).join('');
+  let h = '';
+  if (rc) h += `<h2>Changing room clashes (${M.roomClashes.length})</h2><ul>${rc}</ul>`;
+  if (ov) h += `<h2>Over capacity (${M.over.length})</h2><ul>${ov}</ul>`;
+  if (sh) h += `<h2 style="margin-top:10px">Shared pitches (${M.shared.length})</h2><ul>${sh}</ul>`;
+  if (mm || bv) h += `<h2 style="margin-top:10px">Check the sheet (${M.mismatch.length+M.badVenue.length})</h2><ul>${mm}${bv}</ul>`;
+  if (un) h += `<h2 style="margin-top:10px">Unconfirmed (${M.unconfirmed.length})</h2><ul>${un}</ul>`;
+  if (!h) h = `<span class="ok">No shared pitches, capacity or changing-room problems, or unconfirmed games this weekend.</span>`;
+  return `<div class="panel">${h}<p>Time slots and pitch positions are worked out from the age group and pitch size; the sheet doesn't hold kick-off times. Each surface is one full pitch in two halves. A full-size team on its own takes both halves; with another team it takes one half.</p></div>`;
+}
+function render(){
+  if (document.activeElement && document.activeElement.id==='msgText') return;   // don't overwrite text being edited
+  const M = modelFor(S.sat), tv = document.body.classList.contains('tv');
+  const fri = addDays(S.sat,-1), sun = addDays(S.sat,1);
+  $('#wk').textContent = weekendRange();
+  $('#status').textContent = (DATA.sample ? (SNAPSHOT_DATE ? 'Sheet copied '+SNAPSHOT_DATE : 'Sample data') : (LAST_OK ? 'Updated '+LAST_OK.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : 'Loading…'));
+  $('#banners').innerHTML =
+    (ERROR?`<div class="banner">${esc(ERROR)}</div>`:'') +
+    (DATA.sample && !SNAPSHOT_DATE ? `<div class="banner info">Showing sample data. Set <code>FIXTURES_CSV_URL</code> in CONFIG to read the club sheet live.</div>` : '');
+  document.querySelectorAll('#viewSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
+  document.querySelectorAll('#daySeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.d===S.day));
+  $('#daySeg').style.display = S.view==='day' ? '' : 'none';
+  $('#chips').innerHTML =
+    Object.keys(SURF).map(k=>`<button class="chip" data-s="${k}" aria-pressed="${S.surf.has(k)}">${SURF[k]}</button>`).join('') +
+    Object.keys(GROUP_LABEL).map(k=>`<button class="chip" data-g="${k}" aria-pressed="${S.grp.has(k)}">${GROUP_LABEL[k]}</button>`).join('') +
+    (M.shared.length?`<span class="chip static share">${M.shared.length} shared</span>`:'') +
+    (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'') +
+    (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'');
+  let h = '';
+  if (S.view==='day') h = `<div class="dayhead">${dayTitle(S.day)}</div>${dayStrip(M,S.day)}<div class="gridwrap">${dayGrid(M,S.day)}</div>${roomGrid(M,S.day)}`;
+  else if (S.view==='weekend') h = DAYS.map(d=>`<div class="dayhead">${dayTitle(d)}</div>${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${roomGrid(M,d)}`).join('');
+  else if (S.view==='message') h = messageView(M);
+  else h = `<div class="agenda">${DAYS.map(d=>agendaDay(M,d)).join('')}</div>`;
+  $('#main').innerHTML = h + (tv || S.view==='message' ? '' : issuesPanel(M));
+}
+
+/* ============================ WEEKEND MESSAGE ============================ */
+// One message for the whole manager community. The coordinator can edit it before copying; edits are kept per weekend.
+const MSG_KINDS = ['match','away','session','festival','festival-off'];
+const GROUP_ORDER = ['MINIS','JUNIOR BOYS','JUNIOR GIRLS','WOMEN'];
+function msgTeamLines(i){
+  const opp = (i.act||'').replace(/\s+/g,' ').trim(), slot = slotById(i.slot);
+  const isMatch = i.kind==='match' || (i.kind==='away' && !SESSION_RE.test(opp) && !/fest/i.test(opp));
+  const extra = i.extra ? ` (${i.extra})` : '';
+  if (!i.surface){                                              // away or off-site
+    const what = isMatch ? `${i.team} – AWAY v ${opp || '[opponent TBC]'}` : `${i.team} – AWAY: ${opp}`;
+    return [`${what}${extra}`, `   Meet at [time] at [ground] | Kick-off [time]${isMatch ? ' | Referee [TBC]' : ''}`];
+  }
+  const head = i.kind==='match' ? `${i.team} – HOME v ${opp || '[opponent TBC]'}` : i.kind==='session' ? `${i.team} – SESSION: ${opp}` : `${i.team} – EVENT: ${opp}`;
+  const t = [`Slot ${fmtT(slot.s)}–${fmtT(slot.e)}`, `Kick-off [time]`];
+  if (isMatch) t.push('Referee [TBC]');
+  const p = [`Pitch: ${posLabel(i)} (${sizeLabel(i)})${i.sharedWith.length ? ', shared with ' + i.sharedWith.map(o=>o.team).join(', ') : ''}`];
+  if (i.over) p.push('pitch to be confirmed');
+  if (i.room !== undefined) p.push(i.room==null ? 'Changing room: none free, please speak to me' : `Changing room: Room ${i.room} (from about ${fmtT(slot.e)})`);
+  p.push(i.cp ? 'Car park: your team is marshalling' : 'Car park: not on duty');
+  return [`${head}${extra}`, `   ${t.join(' | ')}`, `   ${p.join(' | ')}`];
+}
+function buildWeekendMessage(M){
+  const L = ['Hi all,', '', `Weekend logistics – ${weekendRange()}`, ''];
+  let any = false;
+  for (const day of DAYS){
+    const items = M.items.filter(i=>i.day===day && MSG_KINDS.includes(i.kind));
+    if (!items.length) continue;
+    any = true;
+    L.push(dayTitle(day).toUpperCase());
+    const cp = items.filter(i=>i.surface && i.cp).map(i=>i.team);
+    if (cp.length) L.push(`Car park marshals: ${cp.join(', ')}`);
+    L.push('');
+    const byTeam = (a,b)=>GROUP_ORDER.indexOf(a.group)-GROUP_ORDER.indexOf(b.group) || seniority(a.team)-seniority(b.team);
+    for (const sl of CONFIG.SLOTS){
+      const list = items.filter(i=>i.surface && i.slot===sl.id).sort(byTeam);
+      list.forEach(i=>{ L.push(...msgTeamLines(i), ''); });
+    }
+    items.filter(i=>!i.surface).sort(byTeam).forEach(i=>{ L.push(...msgTeamLines(i), ''); });
+  }
+  if (!any) L.push('Nothing scheduled this weekend.', '');
+  L.push('Please arrive ready to play and get changed after the match.', 'Any problems, just reply to this message.', 'Thanks,', CONFIG.MESSAGE_SIGNOFF);
+  return L.join('\n');
+}
+S.drafts = {};
+const draftKey = () => iso(S.sat);
+function weekendText(M){ return S.drafts[draftKey()] ?? buildWeekendMessage(M); }
+function messageView(M){
+  const edited = S.drafts[draftKey()] !== undefined;
+  return `<div class="mintro"><p>One message for all team managers, filled in from the sheet. Fill in the [bracketed] gaps (kick-off, referee, meet times) and edit anything you like, then copy it. Your edits are kept for this weekend until you reset. Pitch slots and room times are estimates until kick-off times are in the sheet.</p>
+    <span><button class="btn primary" data-copy="msg">Copy message</button> <button class="btn" data-reset="msg" ${edited?'':'disabled'}>Reset</button></span></div>
+    <textarea id="msgText" class="msgbox" spellcheck="false" aria-label="Weekend message">${esc(weekendText(M))}</textarea>`;
+}
+function flash(btn, text){ const t = btn.dataset.label || (btn.dataset.label = btn.textContent); btn.textContent = text; clearTimeout(btn._t); btn._t = setTimeout(()=>{ btn.textContent = t; }, 2200); }
+async function copyWeekend(btn){
+  const ta = $('#msgText'), text = ta ? ta.value : weekendText(modelFor(S.sat));
+  try { await navigator.clipboard.writeText(text); flash(btn, 'Copied'); }
+  catch(e){                                         // clipboard blocked: show the text selected so Ctrl/Cmd+C works
+    if (S.view!=='message'){ S.view='message'; S.viewSet=true; render(); }
+    const box = $('#msgText'); box.focus(); box.select(); flash(btn, 'Selected: press Ctrl/Cmd+C');
+  }
+}
+$('#copyBar').onclick = e => copyWeekend(e.currentTarget);
+$('#main').addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]'); if (c) copyWeekend(c);
+  const r = e.target.closest('[data-reset]'); if (r && !r.disabled){ delete S.drafts[draftKey()]; render(); }
+});
+$('#main').addEventListener('input', e => {
+  if (e.target.id==='msgText'){ S.drafts[draftKey()] = e.target.value; const r = document.querySelector('[data-reset]'); if (r) r.disabled = false; }
+});
+
+/* ============================ EVENTS ============================ */
+$('#viewSeg').onclick = e => { const v=e.target.dataset.v; if(v){ S.view=v; S.viewSet=true; render(); } };
+$('#daySeg').onclick = e => { const d=e.target.dataset.d; if(d){ S.day=d; S.dayPicked=true; render(); } };
+const shift = n => { S.sat=addDays(S.sat,n); S.dayPicked=false; autoDay(); render(); };
+$('#prev').onclick = () => shift(-7);
+$('#next').onclick = () => shift(7);
+$('#today').onclick = () => { S.sat=upcomingSaturday(); S.dayPicked=false; autoDay(); render(); };
+$('#q').oninput = e => { S.q=e.target.value; render(); $('#q').focus(); };
+$('#chips').onclick = e => {
+  const s=e.target.dataset.s, g=e.target.dataset.g, set = s?S.surf:S.grp, k=s||g; if(!k) return;
+  set.has(k)?set.delete(k):set.add(k); render();
+};
+addEventListener('hashchange', () => { readHash(); render(); });
+
+readHash(); load();
+setInterval(load, CONFIG.REFRESH_MINUTES*60000);
+setInterval(() => {                       // TV mode: cycle through weekend days that have pitch use
+  if (!document.body.classList.contains('tv')) return;
+  const M = modelFor(S.sat), days = DAYS.filter(d=>M.items.some(i=>i.day===d && i.surface));
+  if (!days.length) return;
+  S.view='day'; S.day = days[(days.indexOf(S.day)+1)%days.length]; render();
+}, CONFIG.TV_CYCLE_SECONDS*1000);
+</script>
+</body>
+</html>
