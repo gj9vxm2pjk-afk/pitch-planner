@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Weekend Pitch Planner</title>
+<title>Pitch Planner</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap">
 <style>
 :root{
@@ -59,6 +59,11 @@ main{padding:0 16px 32px}
 .dayhead.sub{font-size:.95rem;margin-top:16px}
 .blk.tail{background:transparent;border:1px dashed var(--line);color:var(--muted);padding:0}
 .bad-text{color:var(--danger)}
+.dh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.bwbar{display:flex;flex-wrap:wrap;gap:6px;font:500 .85rem system-ui,sans-serif;text-transform:none;letter-spacing:0}
+.bwbtn[aria-pressed="true"]{background:var(--danger);color:var(--surface);border-color:var(--danger)}
+.banner.inmain{margin:8px 0}
+#daySeg{flex-wrap:wrap} #daySeg button{padding:7px 10px}
 .mcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}
 .mcard header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
 .mcard h3{margin:0;font-size:.95rem}
@@ -115,21 +120,21 @@ body.tv .bar #copyBar{display:none}
 <body>
 <header class="brand">
   <img class="crest" src="data:image/jpeg;base64,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" alt="Whitley Bay Rockcliff RFC crest">
-  <div class="names"><div class="club">Whitley Bay Rockcliff RFC</div><h1>Weekend Pitch Planner</h1></div>
+  <div class="names"><div class="club">Whitley Bay Rockcliff RFC</div><h1>Pitch Planner</h1></div>
   <span class="status" id="status" role="status"></span>
 </header>
 <div id="banners"></div>
 <div class="bar" id="bar">
   <div class="seg" id="viewSeg" role="group" aria-label="View">
-    <button data-v="day">Pitches</button><button data-v="weekend">Weekend</button><button data-v="agenda">Agenda</button><button data-v="message">Message</button>
+    <button data-v="day">Pitches</button><button data-v="weekend">Week</button><button data-v="agenda">Agenda</button><button data-v="message">Message</button>
   </div>
   <div class="seg" id="daySeg" role="group" aria-label="Day">
-    <button data-d="fri">Fri eve</button><button data-d="sat">Sat</button><button data-d="sun">Sun</button>
+    <button data-d="mon">Mon</button><button data-d="tue">Tue</button><button data-d="wed">Wed</button><button data-d="thu">Thu</button><button data-d="fri">Fri</button><button data-d="sat">Sat</button><button data-d="sun">Sun</button>
   </div>
-  <button class="btn" id="prev" aria-label="Previous weekend">&larr;</button>
+  <button class="btn" id="prev" aria-label="Previous week">&larr;</button>
   <span class="wk" id="wk"></span>
-  <button class="btn" id="next" aria-label="Next weekend">&rarr;</button>
-  <button class="btn" id="today">This weekend</button>
+  <button class="btn" id="next" aria-label="Next week">&rarr;</button>
+  <button class="btn" id="today">This week</button>
   <button class="btn primary" id="copyBar">Copy message</button>
   <input type="search" id="q" placeholder="Search team…" aria-label="Search team">
 </div>
@@ -161,6 +166,13 @@ const CONFIG = {
   // teams get rooms 1 and 3, the least senior get rooms 2 and 4. Teams arrive ready to play and change after
   // the match; a room is booked from match end for ROOM_CHANGE_MIN, then needs ROOM_TURNAROUND_MIN.
   ROOMS: { senior: [1, 3], junior: [2, 4] },
+  // Bookable extras (booked in the separate "WBR Paddock & Scrum Machine Bookings" sheet: Date, Start, End, Resource, Team, Notes)
+  RESOURCES: ['Paddock', 'Junior Scrum Machine', 'Adult Scrum Machine'],
+  // Weekly training (the "WBR Training Schedule" sheet: Day, Team, Start, End, Resource, Share, Weeks). Weeks = All, A or B.
+  // Week A is the week starting on this Monday; the weeks then alternate A, B, A, B...
+  WEEK_A_START: '2026-10-05',
+  TRAINING_CSV_URL: '',
+  BOOKINGS_CSV_URL: '',
   MESSAGE_SIGNOFF: '[Coordinator name]',   // used in the weekend message
   ROOM_CHANGE_MIN: 30,
   ROOM_TURNAROUND_MIN: 30,
@@ -180,8 +192,10 @@ const CONFIG = {
                  'U13 Boys': 1, 'U13 Girls': 1, 'U14 Boys': 1, 'U15 Boys': 1, 'U16 Boys': 1, 'U16 Girls': 1, 'Colts': 1 },
   DEFAULT_SHARE: 1
 };
-const SAMPLE_CSV = ",MINIS,,,,,,,,,,,,,,,,,,,,JUNIOR BOYS,,,,,,,,,,,,,,,JUNIOR GIRLS,,,,,,,,,,,,,,,Women,,,,\r\n,U6s,U7s,,,U8,,,U9,,,U10,,,U11,,,U12 Boys,,,,U13 Boys,,,U14 Boys,,,U15 Boys,,,U16 Boys,,,Colts,,,U12 Girls,,,U14 Girls,,,,U16 Girls,,,,U18 Girls,,,,1st XV,,,2nd XV,\r\n02/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n09/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n16/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n23/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n30/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n06/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,CP,Pre-season,HG,,HG =3 HA =3,Morpeth ,AW,,Training,AW,,Ashington,HG,,Blyton,HA,CP,U15s SWAP,HA,CP,Pre-season,,,Northern (training A),AW,,,NORTH VALKYRIES (A) ,HG,,TRAINING,NORTHERN (A),AW,,FRIENDLY,,,,,\r\n13/09,Training,Pre-season,HG,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,,HG =3 HA =3,Training ,AW,,Training,HA,CP,Northern,AW,,Billingham,HG,,(Houghton),AW,,FUN FEST.,,,FUN FEST,HA,CP, ,HOUGHTON ,AW,,TRAINING,BILLINGHAM AND BLAYDON (A),HG,,FRIENDLY,,,,,\r\n20/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HG,,HG =3 HA =3,Tynedale,AW,,Morpeth,HG,,Hartlepool Rovers,HA,CP,Blyton,AW,,(Northern) Home-W/E,HG,,Pre-season,,,,AW,,,Training at Tynedale ,AW,,TRAINING,Training,HA,CP,LEAGUE,,,,,\r\n27/09,Training,Pre-season,HA,,FUN FEST.,AW,,FUN FEST.,AW,,FUN FEST.,AW,,Training,HG,,Gosforth ,AW,,HG =1 HA =1,Training ,HG,,Percy park,AW,,Sunderland,AW,,Ponteland,HA,CP,(Percy Park) Away,AW,,NORTH FEST GOSFORTH,,,Training ,HG,,,NORTH VALKYRIES (H),HA,CP,,,AW,,LEAGUE,,,,,\r\n04/10,Training,Northern,HA,,Tynedale,HG,,Tynedale,AW,,Ponteland away,AW,,Ashington,AW,,Ponteland,HA,CP,HG =1 HA =2,Wallsend - CC,HA,CP,PADDOCK,AW,,Ashington,HG,,,AW,,U16 Boys (moved),HA,CP,NOVO FEST ,,,NOVO FEST,AW,,,NORTHERN (A),HG,,LEAGUE,HOUGHTON (A),AW,,LEAGUE,,,,,\r\n11/10,Training,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,?Training,HG,,Training,HA,CP,Training?,HG,,Joint training (A'ton),AW,,Northern ,AW,,,,,game request ?,HA,CP,,NORTHERN (A),AW,,NAT CUP,HOUGHTON @MORPETH (H),AW,,NAT CUP,Wensleydale ,,,,\r\n18/10,Training,Novos,HA,,Gosforth,AW,,Blyth / Ashington,HG,,Novos away,AW,,Northern,HA,CP,Alnwick,AW,,HG =1 HA =2,Alnwick ,AW,,Blaydon?,HG,,Middlesbrough,HA,CP,Novos,AW,,,HG,,NORTH FEST NOVO,,,MORPETH (A),AW,,,,AW,,,KESWICK (HOME,HA,CP,,,,,,\r\n25/10,Training,Training,HG,,Training,HG,,Training,HA,,Training,HA,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,HG =2 HA =2,Ponteland,HG,,Blyth,AW,,Horden/ Peterlee,AW,,FNL,HA,CP,,AW,,DURHAM FEST,,,,HG,,,PONTPETH (H),HA,CP,R6 LEAG,,AW,,,,,,,\r\n01/11,Indoors,Ashington,AW,,Ponteland,AW,,Gosforth / N Shields,AW,,Morpeth home,HA,,North Shields,AW,,BLYTH,HG,CP,HG =1 HA =1,Blaydon,HA,CP,Houghton ,AW,,Hartlepool,HG,,,AW,,,HA,CP,NORTH FEST,,,game request ?,HG,,WF R3,TYNEDALE/GOSFORTH (H),HA,CP,WF R1,,AW,,COUNTY,,,,,\r\n08/11,Indoors,Training,HA,CP,Training,HA,,Training,HG,,Training,HG,,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,Tynedale (training),AW,,Morpeth (CC),HA,CP,Alnwick (CC),AW,,Poppy sword (7th) Consett (A),AW,,,,,TYNEDALE (H),HA,CP,,EGREMONT,AW,,NAT CUP/R1 LEAG,,HG,,NAT CUP / PUT,Houghton,,,,\r\n15/11,Indoors,Wallsend/Alnwick,HG,,Blyth,AW,,W'End / Alnwick,HA,CP,Gosforth away,AW,,Ponteland,AW,,WOVOS,AW,,HG =1 HA =1,Northern ,AW,,Training,HG,,Guisborough (A),AW,,Percy Park,HA,CP,Gateshead @wallsend,HG,,NORTH FEST ROCKCLIFF,,H,,AW,,,,HA,CP,,BLAYDON (A),AW,,LEAGUE,,,,,\r\n22/11,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,CP,Training,HG,,HG =3 HA =3,Percy Park,HG,,,AW,,Training?,AW,,Gosforth,HA,CP,,AW,,,,,Novo (H),HG,,,PENRITH ,AW,,NAT CUP,,HA,CP,NAT CUP,Durham city,,,,\r\n29/11,Indoors,Tynedale,AW,,Alnwick,HG,,Northern,AW,,Northern home,HA,CP,Alnwick,AW,,GOSFORTH,HA,,HG =1 HA =2,Darlington ?A,HA,CP,Novos,AW,,Jarrovians,HG,,,AW,,Ryton,HA,CP,NORTH FEST NORTH SHIELDS,,A,WATERFALL CUP,AW,,WF R4,NORTHERN (H),HG,,R2 LEAGUE,,AW,,COUNTY,,,,,\r\n06/12,Indoors,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HA,CP,COUNTY CUP,AW,,COUNTY CUP,HG,,Houghton @ wallsend,AW,,NORTHERN (H/A),,,TYNEDALE (A),HA,CP,WF R5,WATERFALL CUP,AW,,WF R2,KESWICK/PENRITH (H),HG,,LEAGUE/COUNTY,,,,,\r\n13/12,Indoors,Wallsend,AW,,Tynedale,AW,,T'dale / Novos,HA,CP,Tynedale home,HG,,Tyndale,AW,,PONTELAND,AW,,HG =1 HA =1,Training ,AW,,Ashington,HG,,Ponteland,HA,CP,FNL,AW,,,HG,,NORTH FEST ASHINGTON,,A,Northern (H/A),AW,,,,HA,CP,PDG OPP,,AW,,C. MATCH,Novos 2s,,,,\r\n20/12,Indoors,Training,HG,CP,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,,HG =3 HA =3,Alnwick,HG,,,AW,,Hartlepool,AW,,Alnwick,HA,CP,,AW,,,,,BISHOP AUCK (H),HG,,,,AW,,,,HA,CP,,,,,,\r\n27/12,Christmas,,,,,,,,,,,,,,,,,,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,,Christmas,,,,Christmas,,,,,,,,\r\n03/01,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,,,Training,HA,CP,Tynedale ,AW,,Training,HG,,Training,AW,,Training,HA,CP,Training,,,Training,AW,,,Training,HG,,,NORTHERN (A),AW,,LEAGUE/PUT,,,,,\r\n10/01,Indoors,Pont,HG,,Northern,AW,,T'Dale / N Shields,HG,,Wallsend away,AW,,North Shields,HA,CP,1922,HA,,HG =2 HA =2,,AW,,Percy park,HA,CP,Middlesbrough,AW,,Novos,HG,,Northern (A),AW,,NORTH FEST ROCKCLIFF,,H,,HA,CP,,SECOND STAGE LEAG R3,AW,,,,HG,,COUNTY,,,,,\r\n17/01,Indoors,Training,HA,,Training,HA,,Training,HA,,Training,HG,,Training,HG,,Training,HG,CP,HG =3 HA =3,Blaydon,AW,,,HG,,Percy Park,HA,CP,Morpeth ,AW,,Percy Park @ wallsend,HG,,,,,,AW,,,SECOND STAGE LEAG R4,HA,CP,,,AW,,C. MATCH,,,,,\r\n24/01,Indoors,T'Dale,HA,,PP,HA,CP,Ponteland,AW,,Blyth Home,HG,,Ponteland,AW,,GOSFORTH,AW,,HG =1 HA =2,Northern,HG,,,AW,,Ponteland,AW,,Blaydon,HA,CP,,AW,,NORTH FEST,,,TYNEDALE (A),n,,,WATERFALL CUP SEMI,AW,,WF SEM FIN,HOUGHTON (H),HA,CP,LEAGUE,,,,,\r\n31/01,Indoors,Training,HG,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,Training,HA,,HG =3 HA =3,Darlington,HA,CP,,AW,,Morpeth,HG,,Percy Park,AW,,,HA,CP,DURHAM FEST/ NORTHERN (H/A),,,MORPETH (H),AW,,,,HG,,NAT CUP,,AW,,,Workington,,,,\r\n07/02,Indoors,Ashington,HA,,Ponteland,AW,,Northern,HA,CP,Northern Away,AW,,Northern / Tynedale,HG,,NORTHERN,AW,,HG =1 HA =2,Tynedale,HG,,Blyth,HA,CP,Hartlepool Rovers,AW,,Tynedale,AW,,,AW,,NORTH FEST,,,,HA,CP,,,AW,,PDG OPP,,HG,,COUNTY / NAT CUP,,,,,\r\n14/02,Indoors,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Horden/ Peterlee,HA,CP,Alnwick,AW,,,HG,,,,,Novo (A),AW,,,SECOND STAGE LEAG R5,HA,CP,,,AW,,C. MATCH,,,,,\r\n21/02,Indoors,Northern,AW,CP,Ashington / T'dale,HA,,T'Dale / Morpeth,AW,,Morpeth away,AW,,Alnwick,HA,,PONTELAND,HG,,HG =1 HA =2,Jarrovarians,HA,CP,,AW,,Jarrovians,AW,,Training,HG,CP,Consett @ Wallsend,AW,,NORTH FEST ROCKCLIFF,,H,WATERFALL CUP,HG,,BACK UP,SECOND STAGE LEAG R6,AW,,,FRIENDLY ??,HA,CP,,,,,,\r\n28/02,Indoors,Training,HA,,Training,HG,,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,HG =3 HA =3,,HA,CP,Morpeth,AW,,COUNTY CUP,HG,,COUNTY CUP,AW,,Gateshead A,HA,CP,,,,,AW,,,,HG,,NAT CUP,,AW,,PUT / NAT,,,,,\r\n07/03,Training,Morpeth,AW,,Novos,AW,,Gosforth / Blyth,HA,CP,Tynedale away,AW,,Novos,HG,,PPARK,AW,,HG =1 HA =1,Training ,AW,,Training,HA,CP,Alnwick (H),AW,,Gosforth (A),HG,,,AW,,NORTH FEST,,,WATERFALL CUP FINAL,HA,CP,WF FINAL,WATERFALL CUP FINAL,AW,,WF FINAL,,HG,,,,,,,\r\n14/03,Training,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Percy Park,HA,CP,FNL,AW,,Ryton @ wallsend,HG,,TRI COUNTY FEST,,,,AW,,,SECOND STAGE LEAG R7,HA,CP,,,AW,,,North Allerton,,,,\r\n21/03,Training,COUNTY FEST.,AW,,COUNTY FEST.,AW,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,Ashington,HA,,MORPETH,AW,,HG =0 HA =1,,HG,,,AW,,Training?,AW,,,HA,CP,Novos (A),AW,,NORTH FEST GOSFORTH,,A,BISHOP AUCK (A),HG,,,,AW,,PDG / NAT,,HA,CP,NAT CUP,,,,,\r\n28/03,EASTER,,,,,,,,,,,,,,,,,,,,,HA,CP,Blaydon,AW,,,HG,,Blaydon,AW,,,HA,CP,GOOD FRIDAY MORPETH FESTIVAL - FRIDAY 26/03 ,,,,,,,,,,,,,,,,,,,\r\n04/04,Training,Novos,HA,,Northern,AW,,W'end / T'dale,HG,CP,Percy park home,HG,,Tynedale,HG,,1922,HA,CP,HG =3 HA =2,Percy Park,AW,,Tynedale,HA,CP,Ashington,AW,,Tynedale,HG,,,AW,,,,,,HA,CP,,,AW,,,,HG,,,,,,,\r\n11/04,Training,Training,HA,CP,Training,HG,,Training,HA,,Training,HG,,Training,HA,,Training,HG,,HG =3 HA =3,,AW,,Novos ,HG,,Northern,HA,CP,Ponteland,AW,,Novos @ wallsend,HG,,NORTH FEST ALNWICK,,A,,AW,,,,HA,CP,,,AW,,PUT,,,,,\r\n18/04,Training,Pont,AW,,Morpeth / Blyth,HA,CP,Novos,AW,,Percy park away,AW,,North Shields,AW,,MORPETH,AW,,HG =0 HA =1,Creighton,HG,,,AW,,Penrith (Tour?),AW,,? training,HA,CP,,AW,,,,,,HG,,,,AW,,PDG / NAT,,HA,CP,,,,,,\r\n25/04,Training,ALNWICK FEST.,,,ALNWICK FEST.,,,ALNWICK FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,HG =0 HA =0,Ponteland A,HA,CP,,AW,,,HG,,Tour,AW,,,HA,CP,,,,,AW,,,,HG,,,,AW,,,,,,,\r\n02/05,Training,Last train,HA,,Last train,HG,,Last train,HG,CP,Last train,HA,,Last train,HG,,GOSFORTH NEED TO BE AWAY,AW,,HG =3 HA =2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,AGP,12,,AGP,12,,AGP,12,,AGP,9,,AGP,12,,AGP,13,,,AGP,8,,AGP,7,,AGP,8,,AGP,9,,AGP,8,,AGP,0,,AGP,8,,,AGP,9,,,AGP,8,,,AGP,0,,AGP,0\r\n,,GRASS,12,,GRASS,9,,GRASS,11,,GRASS,12,,GRASS,11,,GRASS,8,,,GRASS,9,,GRASS,8,,GRASS,9,,GRASS,6,,GRASS,8,,GRASS,0,,GRASS,8,,,GRASS,6,,,GRASS,7,,,GRASS,0,,GRASS,0\r\n,,AWAY,7,,AWAY,10,,AWAY,8,,AWAY,10,,AWAY,8,,AWAY,10,,,AWAY,15,,AWAY,17,,AWAY,15,,AWAY,17,,AWAY,16,,AWAY,0,,AWAY,14,,,AWAY,16,,,AWAY,16,,,AWAY,0,,AWAY,0\r\n,,,31,,,31,,,31,,,31,,,31,,,31,,,,32,,,32,,,32,,,32,,,32,,,0,,,30,,,,31,,,,31,,,,0,,,0\r\n,,CAR PARK,4,,CAR PARK,6,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,,CAR PARK,8,,CAR PARK,7,,CAR PARK,8,,CAR PARK,10,,CAR PARK,8,,CAR PARK,0,,CAR PARK,8,,,CAR PARK,0,,,CAR PARK,0,,,CAR PARK,0,,CAR PARK,0";
-const SNAPSHOT_DATE = "6 Oct 08:05";   // when the embedded sheet copy was taken (set by refresh.py)
+const SAMPLE_CSV = ",MINIS,,,,,,,,,,,,,,,,,,,,JUNIOR BOYS,,,,,,,,,,,,,,,JUNIOR GIRLS,,,,,,,,,,,,,,,Women,,,,\r\n,U6s,U7s,,,U8,,,U9,,,U10,,,U11,,,U12 Boys,,,,U13 Boys,,,U14 Boys,,,U15 Boys,,,U16 Boys,,,Colts,,,U12 Girls,,,U14 Girls,,,,U16 Girls,,,,U18 Girls,,,,1st XV,,,2nd XV,\r\n02/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n09/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n16/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n23/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n30/08,,,,,,,,,,,,,,,,,,,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,Pre-season,,,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,,Pre-season,,,Pre-season,\r\n06/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,CP,Pre-season,HG,,HG =3 HA =3,Morpeth ,AW,,Training,AW,,Ashington,HG,,Blyton,HA,CP,U15s SWAP,HA,CP,Pre-season,,,Northern (training A),AW,,,NORTH VALKYRIES (A) ,HG,,TRAINING,NORTHERN (A),AW,,FRIENDLY,,,,,\r\n13/09,Training,Pre-season,HG,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,,Pre-season,HA,,HG =3 HA =3,Training ,AW,,Training,HA,CP,Northern,AW,,Billingham,HG,,(Houghton),AW,,FUN FEST.,,,FUN FEST,HA,CP, ,HOUGHTON ,AW,,TRAINING,BILLINGHAM AND BLAYDON (A),HG,,FRIENDLY,,,,,\r\n20/09,Training,Pre-season,HG,,Pre-season,HA,,Pre-season,HA,,Pre-season,HG,CP,Pre-season,HA,,Pre-season,HG,,HG =3 HA =3,Tynedale,AW,,Morpeth,HG,,Hartlepool Rovers,HA,CP,Blyton,AW,,(Northern) Home-W/E,HG,,Pre-season,,,,AW,,,Training at Tynedale ,AW,,TRAINING,Training,HA,CP,LEAGUE,,,,,\r\n27/09,Training,Pre-season,HA,,FUN FEST.,AW,,FUN FEST.,AW,,FUN FEST.,AW,,Training,HG,,Gosforth ,AW,,HG =1 HA =1,Training ,HG,,Percy park,AW,,Sunderland,AW,,Ponteland,HA,CP,(Percy Park) Away,AW,,NORTH FEST GOSFORTH,,,Training ,HG,,,NORTH VALKYRIES (H),HA,CP,,,AW,,LEAGUE,,,,,\r\n04/10,Training,Northern,HA,,Tynedale,HG,,Tynedale,AW,,Ponteland away,AW,,Ashington,AW,,Ponteland,HA,CP,HG =1 HA =2,Wallsend - CC,HA,CP,PADDOCK,AW,,Ashington,HG,,,AW,,U16 Boys (moved),HA,CP,NOVO FEST ,,,NOVO FEST,AW,,,NORTHERN (A),HG,,LEAGUE,HOUGHTON (A),AW,,LEAGUE,,,,,\r\n11/10,Training,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,?Training,HG,,Training,HA,CP,Training?,HG,,Joint training (A'ton),AW,,Northern ,AW,,,,,game request ?,HA,CP,,NORTHERN (A),AW,,NAT CUP,HOUGHTON @MORPETH (H),AW,,NAT CUP,Wensleydale ,,,,\r\n18/10,Training,Novos,HA,,Gosforth,AW,,Blyth / Ashington,HG,,Novos away,AW,,Northern,HA,CP,Alnwick,AW,,HG =1 HA =2,Alnwick ,AW,,Blaydon?,HG,,Middlesbrough,HA,CP,Novos,AW,,,HG,,NORTH FEST NOVO,,,MORPETH (A),AW,,,,AW,,,KESWICK (HOME,HA,CP,,,,,,\r\n25/10,Training,Training,HG,,Training,HG,,Training,HA,,Training,HA,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,HG =2 HA =2,Ponteland,HG,,Blyth,AW,,Horden/ Peterlee,AW,,FNL,HA,CP,,AW,,DURHAM FEST,,,,HG,,,PONTPETH (H),HA,CP,R6 LEAG,,AW,,,,,,,\r\n01/11,Indoors,Ashington,AW,,Ponteland,AW,,Gosforth / N Shields,AW,,Morpeth home,HA,,North Shields,AW,,BLYTH,HG,CP,HG =1 HA =1,Blaydon,HA,CP,Houghton ,AW,,Hartlepool,HG,,,AW,,,HA,CP,NORTH FEST,,,game request ?,HG,,WF R3,TYNEDALE/GOSFORTH (H),HA,CP,WF R1,,AW,,COUNTY,,,,,\r\n08/11,Indoors,Training,HA,CP,Training,HA,,Training,HG,,Training,HG,,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,Tynedale (training),AW,,Morpeth (CC),HA,CP,Alnwick (CC),AW,,Poppy sword (7th) Consett (A),AW,,,,,TYNEDALE (H),HA,CP,,EGREMONT,AW,,NAT CUP/R1 LEAG,,HG,,NAT CUP / PUT,Houghton,,,,\r\n15/11,Indoors,Wallsend/Alnwick,HG,,Blyth,AW,,W'End / Alnwick,HA,CP,Gosforth away,AW,,Ponteland,AW,,WOVOS,AW,,HG =1 HA =1,Northern ,AW,,Training,HG,,Guisborough (A),AW,,Percy Park,HA,CP,Gateshead @wallsend,HG,,NORTH FEST ROCKCLIFF,,H,,AW,,,,HA,CP,,BLAYDON (A),AW,,LEAGUE,,,,,\r\n22/11,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,CP,Training,HG,,HG =3 HA =3,Percy Park,HG,,,AW,,Training?,AW,,Gosforth,HA,CP,,AW,,,,,Novo (H),HG,,,PENRITH ,AW,,NAT CUP,,HA,CP,NAT CUP,Durham city,,,,\r\n29/11,Indoors,Tynedale,AW,,Alnwick,HG,,Northern,AW,,Northern home,HA,CP,Alnwick,AW,,GOSFORTH,HA,,HG =1 HA =2,Darlington ?A,HA,CP,Novos,AW,,Jarrovians,HG,,,AW,,Ryton,HA,CP,NORTH FEST NORTH SHIELDS,,A,WATERFALL CUP,AW,,WF R4,NORTHERN (H),HG,,R2 LEAGUE,,AW,,COUNTY,,,,,\r\n06/12,Indoors,Training,HG,,Training,HA,CP,Training,HG,,Training,HG,,Training,HA,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HA,CP,COUNTY CUP,AW,,COUNTY CUP,HG,,Houghton @ wallsend,AW,,NORTHERN (H/A),,,TYNEDALE (A),HA,CP,WF R5,WATERFALL CUP,AW,,WF R2,KESWICK/PENRITH (H),HG,,LEAGUE/COUNTY,,,,,\r\n13/12,Indoors,Wallsend,AW,,Tynedale,AW,,T'dale / Novos,HA,CP,Tynedale home,HG,,Tyndale,AW,,PONTELAND,AW,,HG =1 HA =1,Training ,AW,,Ashington,HG,,Ponteland,HA,CP,FNL,AW,,,HG,,NORTH FEST ASHINGTON,,A,Northern (H/A),AW,,,,HA,CP,PDG OPP,,AW,,C. MATCH,Novos 2s,,,,\r\n20/12,Indoors,Training,HG,CP,Training,HA,,Training,HG,,Training,HA,,Training,HA,,Training,HG,,HG =3 HA =3,Alnwick,HG,,,AW,,Hartlepool,AW,,Alnwick,HA,CP,,AW,,,,,BISHOP AUCK (H),HG,,,,AW,,,,HA,CP,,,,,,\r\n27/12,Christmas,,,,,,,,,,,,,,,,,,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,Christmas,,,,Christmas,,,,Christmas,,,,,,,,\r\n03/01,Indoors,Training,HA,,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,,,Training,HA,CP,Tynedale ,AW,,Training,HG,,Training,AW,,Training,HA,CP,Training,,,Training,AW,,,Training,HG,,,NORTHERN (A),AW,,LEAGUE/PUT,,,,,\r\n10/01,Indoors,Pont,HG,,Northern,AW,,T'Dale / N Shields,HG,,Wallsend away,AW,,North Shields,HA,CP,1922,HA,,HG =2 HA =2,,AW,,Percy park,HA,CP,Middlesbrough,AW,,Novos,HG,,Northern (A),AW,,NORTH FEST ROCKCLIFF,,H,,HA,CP,,SECOND STAGE LEAG R3,AW,,,,HG,,COUNTY,,,,,\r\n17/01,Indoors,Training,HA,,Training,HA,,Training,HA,,Training,HG,,Training,HG,,Training,HG,CP,HG =3 HA =3,Blaydon,AW,,,HG,,Percy Park,HA,CP,Morpeth ,AW,,Percy Park @ wallsend,HG,,,,,,AW,,,SECOND STAGE LEAG R4,HA,CP,,,AW,,C. MATCH,,,,,\r\n24/01,Indoors,T'Dale,HA,,PP,HA,CP,Ponteland,AW,,Blyth Home,HG,,Ponteland,AW,,GOSFORTH,AW,,HG =1 HA =2,Northern,HG,,,AW,,Ponteland,AW,,Blaydon,HA,CP,,AW,,NORTH FEST,,,TYNEDALE (A),n,,,WATERFALL CUP SEMI,AW,,WF SEM FIN,HOUGHTON (H),HA,CP,LEAGUE,,,,,\r\n31/01,Indoors,Training,HG,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,Training,HA,,HG =3 HA =3,Darlington,HA,CP,,AW,,Morpeth,HG,,Percy Park,AW,,,HA,CP,DURHAM FEST/ NORTHERN (H/A),,,MORPETH (H),AW,,,,HG,,NAT CUP,,AW,,,Workington,,,,\r\n07/02,Indoors,Ashington,HA,,Ponteland,AW,,Northern,HA,CP,Northern Away,AW,,Northern / Tynedale,HG,,NORTHERN,AW,,HG =1 HA =2,Tynedale,HG,,Blyth,HA,CP,Hartlepool Rovers,AW,,Tynedale,AW,,,AW,,NORTH FEST,,,,HA,CP,,,AW,,PDG OPP,,HG,,COUNTY / NAT CUP,,,,,\r\n14/02,Indoors,Training,HG,,Training,HA,,Training,HG,,Training,HG,,Training,HA,CP,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Horden/ Peterlee,HA,CP,Alnwick,AW,,,HG,,,,,Novo (A),AW,,,SECOND STAGE LEAG R5,HA,CP,,,AW,,C. MATCH,,,,,\r\n21/02,Indoors,Northern,AW,CP,Ashington / T'dale,HA,,T'Dale / Morpeth,AW,,Morpeth away,AW,,Alnwick,HA,,PONTELAND,HG,,HG =1 HA =2,Jarrovarians,HA,CP,,AW,,Jarrovians,AW,,Training,HG,CP,Consett @ Wallsend,AW,,NORTH FEST ROCKCLIFF,,H,WATERFALL CUP,HG,,BACK UP,SECOND STAGE LEAG R6,AW,,,FRIENDLY ??,HA,CP,,,,,,\r\n28/02,Indoors,Training,HA,,Training,HG,,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,HG =3 HA =3,,HA,CP,Morpeth,AW,,COUNTY CUP,HG,,COUNTY CUP,AW,,Gateshead A,HA,CP,,,,,AW,,,,HG,,NAT CUP,,AW,,PUT / NAT,,,,,\r\n07/03,Training,Morpeth,AW,,Novos,AW,,Gosforth / Blyth,HA,CP,Tynedale away,AW,,Novos,HG,,PPARK,AW,,HG =1 HA =1,Training ,AW,,Training,HA,CP,Alnwick (H),AW,,Gosforth (A),HG,,,AW,,NORTH FEST,,,WATERFALL CUP FINAL,HA,CP,WF FINAL,WATERFALL CUP FINAL,AW,,WF FINAL,,HG,,,,,,,\r\n14/03,Training,Training,HG,,Training,HA,,Training,HG,,Training,HA,CP,Training,HG,,Training,HA,,HG =3 HA =3,COUNTY CUP,AW,,COUNTY CUP,HG,,Percy Park,HA,CP,FNL,AW,,Ryton @ wallsend,HG,,TRI COUNTY FEST,,,,AW,,,SECOND STAGE LEAG R7,HA,CP,,,AW,,,North Allerton,,,,\r\n21/03,Training,COUNTY FEST.,AW,,COUNTY FEST.,AW,CP,COUNTY FEST.,AW,,COUNTY FEST.,AW,,Ashington,HA,,MORPETH,AW,,HG =0 HA =1,,HG,,,AW,,Training?,AW,,,HA,CP,Novos (A),AW,,NORTH FEST GOSFORTH,,A,BISHOP AUCK (A),HG,,,,AW,,PDG / NAT,,HA,CP,NAT CUP,,,,,\r\n28/03,EASTER,,,,,,,,,,,,,,,,,,,,,HA,CP,Blaydon,AW,,,HG,,Blaydon,AW,,,HA,CP,GOOD FRIDAY MORPETH FESTIVAL - FRIDAY 26/03 ,,,,,,,,,,,,,,,,,,,\r\n04/04,Training,Novos,HA,,Northern,AW,,W'end / T'dale,HG,CP,Percy park home,HG,,Tynedale,HG,,1922,HA,CP,HG =3 HA =2,Percy Park,AW,,Tynedale,HA,CP,Ashington,AW,,Tynedale,HG,,,AW,,,,,,HA,CP,,,AW,,,,HG,,,,,,,\r\n11/04,Training,Training,HA,CP,Training,HG,,Training,HA,,Training,HG,,Training,HA,,Training,HG,,HG =3 HA =3,,AW,,Novos ,HG,,Northern,HA,CP,Ponteland,AW,,Novos @ wallsend,HG,,NORTH FEST ALNWICK,,A,,AW,,,,HA,CP,,,AW,,PUT,,,,,\r\n18/04,Training,Pont,AW,,Morpeth / Blyth,HA,CP,Novos,AW,,Percy park away,AW,,North Shields,AW,,MORPETH,AW,,HG =0 HA =1,Creighton,HG,,,AW,,Penrith (Tour?),AW,,? training,HA,CP,,AW,,,,,,HG,,,,AW,,PDG / NAT,,HA,CP,,,,,,\r\n25/04,Training,ALNWICK FEST.,,,ALNWICK FEST.,,,ALNWICK FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,TYNEDALE FEST.,,,HG =0 HA =0,Ponteland A,HA,CP,,AW,,,HG,,Tour,AW,,,HA,CP,,,,,AW,,,,HG,,,,AW,,,,,,,\r\n02/05,Training,Last train,HA,,Last train,HG,,Last train,HG,CP,Last train,HA,,Last train,HG,,GOSFORTH NEED TO BE AWAY,AW,,HG =3 HA =2,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\r\n,,AGP,12,,AGP,12,,AGP,12,,AGP,9,,AGP,12,,AGP,13,,,AGP,8,,AGP,7,,AGP,8,,AGP,9,,AGP,8,,AGP,0,,AGP,8,,,AGP,9,,,AGP,8,,,AGP,0,,AGP,0\r\n,,GRASS,12,,GRASS,9,,GRASS,11,,GRASS,12,,GRASS,11,,GRASS,8,,,GRASS,9,,GRASS,8,,GRASS,9,,GRASS,6,,GRASS,8,,GRASS,0,,GRASS,8,,,GRASS,6,,,GRASS,7,,,GRASS,0,,GRASS,0\r\n,,AWAY,7,,AWAY,10,,AWAY,8,,AWAY,10,,AWAY,8,,AWAY,10,,,AWAY,15,,AWAY,17,,AWAY,15,,AWAY,17,,AWAY,16,,AWAY,0,,AWAY,14,,,AWAY,16,,,AWAY,16,,,AWAY,0,,AWAY,0\r\n,,,31,,,31,,,31,,,31,,,31,,,31,,,,32,,,32,,,32,,,32,,,32,,,0,,,30,,,,31,,,,31,,,,0,,,0\r\n,,CAR PARK,4,,CAR PARK,6,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,CAR PARK,5,,,CAR PARK,8,,CAR PARK,7,,CAR PARK,8,,CAR PARK,10,,CAR PARK,8,,CAR PARK,0,,CAR PARK,8,,,CAR PARK,0,,,CAR PARK,0,,,CAR PARK,0,,CAR PARK,0";
+const TRAINING_CSV = "Day,Team,Start,End,Resource,Share,Weeks,Notes\r\nTue,U12 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U12 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U14 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U14 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U16 Girls,17:30,18:55,Grass,Half,A,Time assumed to match the U12/U14 Girls - please check\r\nTue,U16 Girls,17:30,18:55,AGP,Half,B,Time assumed to match the U12/U14 Girls - please check\r\nTue,U18 Girls,18:00,18:55,Grass,Half,A,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:00,18:55,AGP,Half,B,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:55,19:30,Paddock,Full,All,";       // copy of the training schedule sheet (set by refresh.py)
+const BOOKINGS_CSV = "Date,Start,End,Resource,Team,Notes\r\n11/10/2026,18:00,19:30,Adult Scrum Machine,EXAMPLE - delete this row,Resource must be one of: Paddock / Junior Scrum Machine / Adult Scrum Machine";      // copy of the paddock & scrum machine bookings sheet (set by refresh.py)
+const SNAPSHOT_DATE = "6 Oct 13:17";   // when the embedded sheet copy was taken (set by refresh.py)
 
 /* ============================ UTIL ============================ */
 const $ = s => document.querySelector(s);
@@ -189,7 +203,9 @@ const pad = n => String(n).padStart(2, '0');
 const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const fmtT = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const DAYS = ['fri','sat','sun'], DAY_NAME = {fri:'Friday evening',sat:'Saturday',sun:'Sunday'}, DAY_OFF = {fri:-1,sat:0,sun:1};
+const DAYS = ['mon','tue','wed','thu','fri','sat','sun'], WEEKEND_DAYS = ['fri','sat','sun'];
+const DAY_NAME = {mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday',sun:'Sunday'};
+const DAY_OFF = {mon:-5,tue:-4,wed:-3,thu:-2,fri:-1,sat:0,sun:1};            // days from the week's Saturday
 const SURF = { grass:'Grass', agp:'AGP' };
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 function upcomingSaturday(){
@@ -211,12 +227,12 @@ function parseCSV(text){
 }
 function dayKeyFor(date, sat){
   const diff = Math.round((date - sat)/86400000);
-  return diff===-1?'fri':diff===0?'sat':diff===1?'sun':null;
+  return ({'-5':'mon','-4':'tue','-3':'wed','-2':'thu','-1':'fri','0':'sat','1':'sun'})[diff] || null;
 }
 function fracLabel(f){ return f>=0.99 ? 'Full pitch' : Math.abs(f-1/2)<.01 ? '1/2 pitch' : Math.abs(f-1/3)<.01 ? '1/3 pitch' : Math.round(f*100)+'%'; }
 function groupKey(g){ const u=String(g||'').toUpperCase(); return u.includes('MINI')?'MINIS':u.includes('BOYS')?'JUNIOR BOYS':u.includes('GIRLS')?'JUNIOR GIRLS':'WOMEN'; }
 const GROUP_LABEL = {MINIS:'Minis','JUNIOR BOYS':'Junior boys','JUNIOR GIRLS':'Junior girls',WOMEN:'Women'};
-const GROUP_HUE = {MINIS:95,'JUNIOR BOYS':200,'JUNIOR GIRLS':325,WOMEN:35};
+const GROUP_HUE = {MINIS:95,'JUNIOR BOYS':200,'JUNIOR GIRLS':325,WOMEN:35,RES:48};
 const colourFor = g => `hsl(${GROUP_HUE[g]??150} 62% 78%)`;
 function cleanTeam(t){ return t.replace(/\s+/g,' ').trim().replace(/^(U\d+)s$/i,'$1'); }
 
@@ -261,6 +277,82 @@ function parseGrid(rows){
   }
   return items;
 }
+function weekLetter(sat){
+  const a = new Date(CONFIG.WEEK_A_START+'T00:00:00'), n = Math.round((addDays(sat,-5) - a)/(7*86400000));
+  return ((n%2)+2)%2===0 ? 'A' : 'B';
+}
+function groupFromTeam(team){
+  if (/1st XV|2nd XV|women/i.test(team)) return 'WOMEN';
+  if (/girls/i.test(team)) return 'JUNIOR GIRLS';
+  const m = team.match(/U\s?(\d+)/i);
+  if (m && +m[1] <= 12) return 'MINIS';
+  return 'JUNIOR BOYS';
+}
+function parseShare(v){
+  const t = String(v||'').trim().toLowerCase();
+  if (!t) return 1;
+  if (/^full|^whole/.test(t)) return 1;
+  if (/^half/.test(t)) return 0.5;
+  if (/^third/.test(t)) return 1/3;
+  if (/^quarter/.test(t)) return 0.25;
+  let m = t.match(/^(\d+)\s*\/\s*(\d+)$/); if (m) return +m[1]/+m[2];
+  m = t.match(/^(\d+(?:\.\d+)?)\s*%$/); if (m) return +m[1]/100;
+  return null;
+}
+function parseTraining(rows){
+  if (!rows.length) return [];
+  const head = rows[0].map(h=>h.trim().toLowerCase()), ix = n => head.indexOf(n);
+  const c = {day:ix('day'), team:ix('team'), start:ix('start'), end:ix('end'), res:ix('resource'), share:ix('share'), weeks:ix('weeks'), notes:ix('notes')};
+  if (c.day<0 || c.team<0 || c.start<0 || c.end<0 || c.res<0) throw new Error('training sheet needs Day, Team, Start, End and Resource columns');
+  const DK = {mon:'mon',tue:'tue',tues:'tue',wed:'wed',thu:'thu',thur:'thu',thurs:'thu',fri:'fri',sat:'sat',sun:'sun'};
+  const out = [];
+  for (const r of rows.slice(1)){
+    if (!r.some(x=>(x||'').trim())) continue;
+    const team = (r[c.team]||'').trim(); if (/^example/i.test(team)) continue;
+    const day = DK[(r[c.day]||'').trim().toLowerCase().slice(0,5).replace(/\.$/,'')] || DK[(r[c.day]||'').trim().toLowerCase().slice(0,3)];
+    const rr = (r[c.res]||'').trim().toLowerCase(), res = /grass/.test(rr) ? 'grass' : /agp|astro|all.?weather/.test(rr) ? 'agp' : /paddock/.test(rr) ? 'paddock' : '';
+    const share = c.share>=0 ? parseShare(r[c.share]) : 1, s0 = parseHM(r[c.start]), e0 = parseHM(r[c.end]);
+    const w = ((c.weeks>=0 ? r[c.weeks] : '')||'').trim().toUpperCase(), weeks = /\bA\b|^A$|WEEK A/.test(w) ? 'A' : /\bB\b|^B$|WEEK B/.test(w) ? 'B' : 'ALL';
+    out.push({day, team, s:s0, e:e0, res, rawRes:(r[c.res]||'').trim(), frac:share==null?1:share, weeks, notes:(c.notes>=0 ? r[c.notes] : '')||'',
+      bad: !day || !team || !res || s0==null || e0==null || e0<=s0 || share==null});
+  }
+  return out;
+}
+function canonResource(raw){
+  const t = String(raw||'').toLowerCase();
+  if (/paddock/.test(t)) return 'Paddock';
+  if (/scrum/.test(t) && /junior|jnr|youth|age/.test(t)) return 'Junior Scrum Machine';
+  if (/scrum/.test(t) && /adult|senior|snr/.test(t)) return 'Adult Scrum Machine';
+  return '';
+}
+function parseBookings(rows){
+  if (!rows.length) return [];
+  const head = rows[0].map(h=>h.trim().toLowerCase()), ix = n => head.indexOf(n);
+  const c = {date:ix('date'), start:ix('start'), end:ix('end'), res:ix('resource'), team:ix('team'), notes:ix('notes')};
+  if (c.date<0 || c.start<0 || c.end<0 || c.res<0) throw new Error('bookings sheet needs Date, Start, End and Resource columns');
+  const out = [];
+  for (const r of rows.slice(1)){
+    if (!r.some(x=>(x||'').trim())) continue;
+    const team = (r[c.team]||'').trim();
+    if (/^example/i.test(team)) continue;                       // example row from the template
+    const rawRes = (r[c.res]||'').trim(), resource = canonResource(rawRes);
+    const d = parseSheetDate(r[c.date]), s0 = parseHM(r[c.start]), e0 = parseHM(r[c.end]);
+    out.push({date:d, start:s0, end:e0, resource, rawRes, team, notes:(c.notes>=0 ? r[c.notes] : '')||'', bad: !d || s0==null || e0==null || e0<=s0 || !resource});
+  }
+  return out;
+}
+function parseSheetDate(v){
+  v = String(v||'').trim(); let m;
+  if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return new Date(+m[1], m[2]-1, +m[3]);
+  if ((m = v.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/))) return new Date(m[3].length===2 ? 2000+ +m[3] : +m[3], m[2]-1, +m[1]);
+  return null;
+}
+function parseHM(v){
+  const m = String(v||'').trim().toLowerCase().match(/^(\d{1,2})(?:[:.h](\d{2}))?(?::\d{2})?\s*(am|pm)?$/);
+  if (!m) return null; let h = +m[1]; const mi = +(m[2]||0);
+  if (m[3]==='pm' && h<12) h+=12; if (m[3]==='am' && h===12) h=0;
+  return h*60+mi;
+}
 function applyConfigRows(rows){
   for (const r of rows){
     if (/season start/i.test(r[0]||'') && /^\d{4}-\d{2}-\d{2}/.test(r[1]||'')) CONFIG.SEASON_START = r[1].trim().slice(0,10);
@@ -275,7 +367,7 @@ const slotIdFor = it => CONFIG.SLOT_BY_TEAM[it.team] || CONFIG.SLOT_BY_GROUP[it.
 const slotById = id => CONFIG.SLOTS.find(s=>s.id===id);
 
 /* ============================ DATA ============================ */
-let DATA = {items:[], sample:false}, LAST_OK = null, ERROR = '';
+let DATA = {items:[], bookings:[], training:[], sample:false}, LAST_OK = null, ERROR = '';
 async function fetchRows(url){
   const r = await fetch(url, {cache:'no-store'});
   if (!r.ok) throw new Error('HTTP '+r.status);
@@ -284,10 +376,10 @@ async function fetchRows(url){
 async function load(){
   try{
     if (!CONFIG.FIXTURES_CSV_URL){
-      DATA = {items: parseGrid(parseCSV(SAMPLE_CSV)), sample:true};
+      DATA = {items: parseGrid(parseCSV(SAMPLE_CSV)), bookings: BOOKINGS_CSV ? parseBookings(parseCSV(BOOKINGS_CSV)) : [], training: TRAINING_CSV ? parseTraining(parseCSV(TRAINING_CSV)) : [], sample:true};
     } else {
       if (CONFIG.CONFIG_CSV_URL) applyConfigRows(await fetchRows(CONFIG.CONFIG_CSV_URL));
-      DATA = {items: parseGrid(await fetchRows(CONFIG.FIXTURES_CSV_URL)), sample:false};
+      DATA = {items: parseGrid(await fetchRows(CONFIG.FIXTURES_CSV_URL)), bookings: CONFIG.BOOKINGS_CSV_URL ? parseBookings(await fetchRows(CONFIG.BOOKINGS_CSV_URL)) : [], training: CONFIG.TRAINING_CSV_URL ? parseTraining(await fetchRows(CONFIG.TRAINING_CSV_URL)) : [], sample:false};
     }
     LAST_OK = new Date(); ERROR='';
   }catch(e){ ERROR = 'Could not refresh the sheet (' + e.message + '). Showing the last good data.'; }
@@ -348,7 +440,40 @@ function modelFor(sat){
     if (multi) shared.push({day:list[0].day, surface, slot:list[0].slot, items:list, total, over:tooMany});
   }
   const rooms = buildRooms(items);
+  // paddock & scrum machine bookings for this weekend, with overlap checks per resource
+  const res = [];
+  for (const b of (DATA.bookings||[])){
+    if (!b.date) continue;
+    const day = dayKeyFor(b.date, sat); if (!day) continue;
+    res.push({...b, day});
+  }
+  // weekly training: pitch sessions are placed on the halves of each surface; paddock sessions join the paddock bookings
+  const wk = weekLetter(sat), train = [], badTrain = [];
+  for (const t of (DATA.training||[])){
+    if (t.bad){ badTrain.push(t); continue; }
+    if (t.weeks!=='ALL' && t.weeks!==wk) continue;
+    const date = addDays(sat, DAY_OFF[t.day]);
+    if (t.res==='paddock'){
+      res.push({date, start:t.s, end:t.e, resource:'Paddock', rawRes:'Paddock', team:t.team, notes:'Training'+(t.notes?' · '+t.notes:''), bad:false, day:t.day, training:true});
+    } else {
+      train.push({...t, kind:'train', date, surface:t.res, ts:t.s, te:t.e, group:groupFromTeam(t.team), need:t.frac>=0.99?2:1, bw:S.bw.has(iso(date))});
+    }
+  }
+  for (const day of DAYS) for (const surf of ['grass','agp']){
+    const list = train.filter(t=>t.day===day && t.surface===surf).sort((a,b)=>a.ts-b.ts || b.need-a.need || a.team.localeCompare(b.team));
+    const halves = [[],[]];
+    list.forEach(t=>{
+      const free = k => !halves[k].some(o=>o.ts<t.te && t.ts<o.te);
+      if (t.need>=2){ if (free(0) && free(1)){ t.cols=[0,1]; halves[0].push(t); halves[1].push(t); t.over=false; } else { t.cols=[0]; t.over=true; } }
+      else { const k = [0,1].find(free); if (k!==undefined){ t.cols=[k]; halves[k].push(t); t.over=false; } else { t.cols=[0]; t.over=true; } }
+    });
+    list.forEach(t=>{ t.sharedWith = list.filter(o=>o!==t && o.ts<t.te && t.ts<o.te); });
+  }
+  const valid = res.filter(b=>!b.bad);
+  valid.forEach(a=>{ a.clash = valid.some(o=>o!==a && o.day===a.day && o.resource===a.resource && o.start < a.end && a.start < o.end); });
   return {
+    train, badTrain, trainOver: train.filter(t=>t.over), weekLetter: wk,
+    resBookings: res, resClashes: valid.filter(b=>b.clash), badBookings: res.filter(b=>b.bad),
     items, shared, roomReqs: rooms.reqs, roomClashes: rooms.clashes,
     over: items.filter(i=>i.over),
     unconfirmed: items.filter(i=>i.unconfirmed),
@@ -359,18 +484,32 @@ function modelFor(sat){
 }
 
 /* ============================ STATE ============================ */
-const S = { view:'day', day:'sun', sat:upcomingSaturday(), surf:new Set(), grp:new Set(), q:'', viewSet:false, dayPicked:false };
+const S = { view:'day', day:'sun', sat:upcomingSaturday(), surf:new Set(), grp:new Set(), bw:new Set(), q:'', viewSet:false, dayPicked:false };
 const compact = () => matchMedia('(max-width:700px)').matches;
+const dayHasContent = (M,d) => M.items.some(i=>i.day===d && (i.surface || i.kind!=='training')) || M.train.some(t=>t.day===d) || M.resBookings.some(b=>b.day===d && !b.bad);
 function autoDay(){
   if (S.dayPicked) return;
   const M = modelFor(S.sat);
-  const d = ['sat','sun','fri'].find(k => M.items.some(i=>i.day===k && i.surface));
+  const t = new Date(); t.setHours(0,0,0,0);
+  const today = dayKeyFor(t, S.sat);
+  if (today && dayHasContent(M,today)) { S.day = today; return; }
+  const d = DAYS.find(k => dayHasContent(M,k)) || today;
   if (d) S.day = d;
 }
 function readHash(){
-  if (location.hash === '#tv') document.body.classList.add('tv'); else document.body.classList.remove('tv');
+  const p = new URLSearchParams(location.hash.replace(/^#/,''));
+  if (p.has('tv')) document.body.classList.add('tv'); else document.body.classList.remove('tv');
+  S.bw = new Set((p.get('bw')||'').split(',').filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)));
   if (!S.viewSet) S.view = compact() ? 'agenda' : 'day';
 }
+function writeHash(){
+  const parts = [];
+  if (document.body.classList.contains('tv')) parts.push('tv');
+  if (S.bw.size) parts.push('bw='+[...S.bw].sort().join(','));
+  history.replaceState(null, '', location.pathname + location.search + (parts.length ? '#'+parts.join('&') : ''));
+}
+const bwOn = day => S.bw.has(iso(addDays(S.sat, DAY_OFF[day])));
+const passesT = t => (S.surf.size===0 || S.surf.has(t.surface)) && (S.grp.size===0 || S.grp.has(t.group)) && (!S.q || t.team.toLowerCase().includes(S.q.toLowerCase()));
 const passes = i => (S.surf.size===0 || (i.surface && S.surf.has(i.surface))) && (S.grp.size===0 || S.grp.has(i.group)) &&
   (!S.q || (i.team+' '+i.act).toLowerCase().includes(S.q.toLowerCase()));
 
@@ -386,21 +525,24 @@ function badges(i){
   if (i.unconfirmed) h+=`<span class="pill warn">Unconfirmed</span>`;
   return h;
 }
+const BW_NOTE = 'Bad weather: grass is not available and the AGP is split into 4 sections, so teams share space. Sessions on the grass need to move, please check with the coordinator.';
 function dayGrid(M, day){
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
+  const trs = M.train.filter(t=>t.day===day && passesT(t));
+  if (!items.length && !trs.length) return `<div class="panel">No pitch sessions ${S.surf.size||S.grp.size||S.q ? 'match the current filters' : 'on this day'}.</div>`;
+  const times = [...items.flatMap(i=>[slotById(i.slot).s, slotById(i.slot).e]), ...trs.flatMap(t=>[t.ts,t.te])];
+  const t0 = Math.floor(Math.min(...times)/60)*60, t1 = Math.ceil(Math.max(...times)/60)*60;
   const cols=[];
   for (const surf of ['grass','agp']){
     if (S.surf.size && !S.surf.has(surf)) continue;
-    const here = items.filter(i=>i.surface===surf);
+    const here = items.filter(i=>i.surface===surf), tHere = trs.filter(t=>t.surface===surf);
     const lanes = Math.max(1, ...CONFIG.SLOTS.flatMap(s=>[0,1].map(c=>here.filter(i=>i.slot===s.id && i.cols.length===1 && i.cols[0]===c).length)));
-    cols.push({surf, items:here, w:Math.max(280, lanes*2*96)});
+    cols.push({surf, items:here, trs:tHere, w:Math.max(280, lanes*2*96)});
   }
-  if (!cols.length) return `<div class="panel">Nothing to show with the current filters.</div>`;
-  const t0 = CONFIG.SLOTS[0].s, t1 = CONFIG.SLOTS[CONFIG.SLOTS.length-1].e;
   const hpx = parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60;
-  const hours = Math.ceil((t1-t0)/60);
+  const hours = Math.max(1, Math.ceil((t1-t0)/60)), bw = bwOn(day);
   let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(c=>`minmax(${c.w}px,1fr)`).join(' ')}">`;
-  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead">${SURF[c.surf]} pitch<small class="halves"><span>${SURF[c.surf]} 1</span><span>${SURF[c.surf]} 2</span></small></div>`).join('');
+  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead ${bw&&c.surf==='grass'?'over':''}">${SURF[c.surf]} pitch${bw?(c.surf==='grass'?' · not available':' · 4 sections'):''}<small class="halves"><span>${SURF[c.surf]} 1</span><span>${SURF[c.surf]} 2</span></small></div>`).join('');
   h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
   for (const c of cols){
     h += `<div class="col halved" style="height:${hours*hpx}px">`;
@@ -419,9 +561,37 @@ function dayGrid(M, day){
         list.forEach((i,k) => { h += place(i, half*50 + k*w, w); });
       }
     }
+    for (const t of c.trs){                                           // weekly training sessions
+      const full = t.cols.length>1, left = t.over ? 50 : (full ? 0 : t.cols[0]*50), width = (full && !t.over) ? 100 : 50;
+      const wet = bw && t.surface==='grass';
+      h += `<div class="blk ${t.sharedWith.length?'shared':''} ${t.over||wet?'over':''}" style="top:${(t.ts-t0)/60*hpx+1}px;height:${Math.max((t.te-t.ts)/60*hpx-3,22)}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(t.group)}"
+        title="${esc(t.team)} training ${fmtT(t.ts)}–${fmtT(t.te)} · ${SURF[t.surface]}${t.sharedWith.length?' · shares with '+t.sharedWith.map(o=>esc(o.team)).join(', '):''}">
+        <b>${t.over?'<span class="tag ov">OVER</span>':''}${wet?'<span class="tag ov">WET</span>':''}${esc(t.team)}</b><span class="sub">Training ${fmtT(t.ts)}–${fmtT(t.te)}</span><br><span class="sub">${full?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}</span></div>`;
+    }
     h += `</div>`;
   }
   return h + `</div>`;
+}
+function resourceGrid(M, day){
+  const list = M.resBookings.filter(b=>b.day===day && !b.bad && (!S.q || (b.team+' '+b.notes).toLowerCase().includes(S.q.toLowerCase())));
+  if (!list.length) return '';
+  const hpx = (parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60) * 1.2;
+  const t0 = Math.floor(Math.min(...list.map(b=>b.start))/60)*60, t1 = Math.ceil(Math.max(...list.map(b=>b.end))/60)*60, hours = Math.max(1,(t1-t0)/60);
+  const cols = CONFIG.RESOURCES.map(n=>({n, list:list.filter(b=>b.resource===n)}));
+  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(()=>'minmax(150px,1fr)').join(' ')}">`;
+  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead">${esc(c.n)}</div>`).join('');
+  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
+  for (const c of cols){
+    h += `<div class="col" style="height:${hours*hpx}px">`;
+    c.list.forEach(b=>{
+      const peers = c.list.filter(o=>o.start < b.end && b.start < o.end), k = peers.indexOf(b), w = 100/peers.length;
+      h += `<div class="blk ${b.clash?'over':''}" style="top:${(b.start-t0)/60*hpx+1}px;height:${Math.max((b.end-b.start)/60*hpx-3,22)}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px);background:${colourFor('RES')}"
+        title="${esc(b.team)} · ${fmtT(b.start)}–${fmtT(b.end)}${b.notes?' · '+esc(b.notes):''}"><b>${b.clash?'<span class="tag ov">CLASH</span>':''}${esc(b.team||'Booked')}</b><span class="sub">${fmtT(b.start)}–${fmtT(b.end)}${b.notes?' · '+esc(b.notes):''}</span></div>`;
+    });
+    h += `</div>`;
+  }
+  h += `</div>`;
+  return `<div class="dayhead sub">Paddock &amp; scrum machines</div><div class="gridwrap">${h}</div>`;
 }
 function roomGrid(M, day){
   const reqs = M.roomReqs.filter(r=>r.day===day && passes(r.item));
@@ -450,9 +620,19 @@ function roomGrid(M, day){
 function dayStrip(M, day){
   const home = M.items.filter(i=>i.day===day && i.surface), cp = M.cp(day);
   const sh = M.shared.filter(s=>s.day===day);
-  return `<div class="strip"><span><b>${home.length}</b> home sessions</span><span><b>${sh.length}</b> shared pitch${sh.length===1?'':'es'}</span>` +
+  const nt = M.train.filter(t=>t.day===day).length;
+  return `<div class="strip">${home.length?`<span><b>${home.length}</b> home sessions</span>`:''}${nt?`<span><b>${nt}</b> training session${nt===1?'':'s'}</span>`:''}${sh.length?`<span><b>${sh.length}</b> shared pitch${sh.length===1?'':'es'}</span>`:''}` +
     (cp.length?`<span>Car park marshals: <b>${cp.map(i=>esc(i.team)).join(', ')}</b></span>`:'') + `</div>`;
 }
+function weekRange(){
+  const f = addDays(S.sat,-5), u = addDays(S.sat,1), mo = d => d.toLocaleString('en-GB',{month:'short'});
+  return f.getMonth()===u.getMonth() ? `${f.getDate()}–${u.getDate()} ${mo(u)}` : `${f.getDate()} ${mo(f)}–${u.getDate()} ${mo(u)}`;
+}
+function bwButtons(d){
+  const on = bwOn(d);
+  return `<span class="bwbar"><button class="btn bwbtn" data-bw="${d}" aria-pressed="${on}">${on?'Bad weather: on':'Bad weather'}</button>${on?'<button class="btn" data-bwlink="1">Copy link</button>':''}</span>`;
+}
+const dayHead = d => `<div class="dayhead dh"><span>${dayTitle(d)}</span>${bwButtons(d)}</div>${bwOn(d)?`<div class="banner inmain">${BW_NOTE}</div>`:''}`;
 function weekendRange(){
   const f = addDays(S.sat,-1), u = addDays(S.sat,1), mo = d => d.toLocaleString('en-GB',{month:'short'});
   return f.getMonth()===u.getMonth() ? `${f.getDate()}–${u.getDate()} ${mo(u)}` : `${f.getDate()} ${mo(f)}–${u.getDate()} ${mo(u)}`;
@@ -480,7 +660,13 @@ function agendaDay(M, day){
   if (other.length) h += `<h4>Notes</h4>` + other.map(i=>row(i)).join('');
   const tr = all.filter(i=>i.kind==='training');
   if (tr.length) h += `<h4>Training, no fixture</h4>` + tr.map(i=>row(i,true)).join('');
-  return `<section class="card"><h3>${dayTitle(day)}</h3>${h || '<div class="row"><span class="status">Nothing scheduled</span></div>'}</section>`;
+  const trs = M.train.filter(t=>t.day===day && passesT(t)).sort((a,b)=>a.ts-b.ts || a.surface.localeCompare(b.surface));
+  if (trs.length) h += `<h4>Training</h4>` + trs.map(t=>`<div class="row"><span class="t">${fmtT(t.ts)}–${fmtT(t.te)}</span><span><b>${esc(t.team)}</b> · ${t.cols.length>1?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}${t.sharedWith.length?'<span class="pill sh">Shared pitch</span>':''}${t.over?'<span class="pill bad">Over capacity</span>':''}${bwOn(day)&&t.surface==='grass'?'<span class="pill bad">Grass not available</span>':''}${t.sharedWith.length?`<br><small class="status">With ${t.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}${t.notes?`<br><small class="status">${esc(t.notes)}</small>`:''}</span></div>`).join('');
+  const rb = M.resBookings.filter(b=>b.day===day && !b.bad && (!S.q || (b.team+' '+b.notes).toLowerCase().includes(S.q.toLowerCase()))).sort((a,b)=>a.start-b.start || a.resource.localeCompare(b.resource));
+  if (rb.length) h += `<h4>Paddock &amp; scrum machines</h4>` + rb.map(b=>`<div class="row"><span class="t">${fmtT(b.start)}–${fmtT(b.end)}</span><span><b>${esc(b.resource)}</b> · ${esc(b.team||'Booked')}${b.clash?'<span class="pill bad">Double booked</span>':''}${b.notes?`<br><small class="status">${esc(b.notes)}</small>`:''}</span></div>`).join('');
+  if (bwOn(day)) h = `<div class="row"><span><span class="pill bad">Bad weather</span></span><span>${BW_NOTE}</span></div>` + h;
+  if (!h) return '';
+  return `<section class="card"><h3>${dayTitle(day)}</h3>${h}</section>`;
 }
 function issuesPanel(M){
   const sh = M.shared.map(s=>`<li><b>${dayTitle(s.day)}</b>, ${SURF[s.surface]} pitch, ${fmtT(slotById(s.slot).s)}–${fmtT(slotById(s.slot).e)}: ${s.items.map(i=>`${esc(i.team)} (${sizeLabel(i).replace(' pitch','').replace('Half of','1/2')}, ${posLabel(i).replace(SURF[s.surface]+' ','')})`).join(' + ')}</li>`).join('');
@@ -490,6 +676,16 @@ function issuesPanel(M){
   const mm = M.mismatch.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue}, but the name suggests ${i.venue==='AW'?'home':'away'}</li>`).join('');
   const rc = M.roomClashes.map(r=>`<li><b>${dayTitle(r.day)}</b> ${fmtT(r.start)}: ${esc(r.item.team)} has no free changing room; all rooms are busy until ${fmtT(r.freeAt)}</li>`).join('');
   let h = '';
+  const rcl = M.resClashes.map(b=>`<li><b>${dayTitle(b.day)}</b> ${esc(b.resource)} ${fmtT(b.start)}–${fmtT(b.end)}: ${esc(b.team||'Booked')} overlaps another booking</li>`).join('');
+  const bb = M.badBookings.map(b=>`<li>${b.date?dayTitle(b.day):'Bookings sheet'}: ${esc(b.team||'row')} ${b.resource?'':`has resource "${esc(b.rawRes)}" (expected ${CONFIG.RESOURCES.map(esc).join(', ')})`}${b.resource && (b.start==null||b.end==null||b.end<=b.start)?'has a missing or invalid time':''}</li>`).join('');
+  const to = M.trainOver.map(t=>`<li><b>${dayTitle(t.day)}</b> ${fmtT(t.ts)}–${fmtT(t.te)}: ${esc(t.team)} has no space on the ${SURF[t.surface]} pitch</li>`).join('');
+  const wet = DAYS.filter(bwOn).map(d=>{ const g = M.train.filter(t=>t.day===d && t.surface==='grass'); return `<li><b>${dayTitle(d)}</b>: ${g.length ? g.map(t=>esc(t.team)+' ('+fmtT(t.ts)+'–'+fmtT(t.te)+')').join(', ')+' normally on the grass need to move' : 'no grass training planned'}</li>`; }).join('');
+  const bt = M.badTrain.map(t=>`<li>Training sheet: ${esc(t.team||'a row')} ${t.day?DAY_NAME[t.day]:'(day not recognised)'}${!t.res?` has resource "${esc(t.rawRes)}" (expected Grass, AGP or Paddock)`:''}${t.res && (t.s==null||t.e==null||t.e<=t.s)?' has a missing or invalid time':''}</li>`).join('');
+  if (wet) h += `<h2>Bad weather days</h2><ul>${wet}</ul>`;
+  if (to) h += `<h2 style="margin-top:10px">Training over capacity (${M.trainOver.length})</h2><ul>${to}</ul>`;
+  if (bt) h += `<h2 style="margin-top:10px">Check the training sheet (${M.badTrain.length})</h2><ul>${bt}</ul>`;
+  if (rcl) h += `<h2>Paddock &amp; scrum machine clashes (${M.resClashes.length})</h2><ul>${rcl}</ul>`;
+  if (bb) h += `<h2 style="margin-top:10px">Check the bookings sheet (${M.badBookings.length})</h2><ul>${bb}</ul>`;
   if (rc) h += `<h2>Changing room clashes (${M.roomClashes.length})</h2><ul>${rc}</ul>`;
   if (ov) h += `<h2>Over capacity (${M.over.length})</h2><ul>${ov}</ul>`;
   if (sh) h += `<h2 style="margin-top:10px">Shared pitches (${M.shared.length})</h2><ul>${sh}</ul>`;
@@ -502,7 +698,7 @@ function render(){
   if (document.activeElement && document.activeElement.id==='msgText') return;   // don't overwrite text being edited
   const M = modelFor(S.sat), tv = document.body.classList.contains('tv');
   const fri = addDays(S.sat,-1), sun = addDays(S.sat,1);
-  $('#wk').textContent = weekendRange();
+  $('#wk').textContent = weekRange() + ' · Week ' + weekLetter(S.sat);
   $('#status').textContent = (DATA.sample ? (SNAPSHOT_DATE ? 'Sheet copied '+SNAPSHOT_DATE : 'Sample data') : (LAST_OK ? 'Updated '+LAST_OK.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : 'Loading…'));
   $('#banners').innerHTML =
     (ERROR?`<div class="banner">${esc(ERROR)}</div>`:'') +
@@ -515,12 +711,16 @@ function render(){
     Object.keys(GROUP_LABEL).map(k=>`<button class="chip" data-g="${k}" aria-pressed="${S.grp.has(k)}">${GROUP_LABEL[k]}</button>`).join('') +
     (M.shared.length?`<span class="chip static share">${M.shared.length} shared</span>`:'') +
     (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'') +
-    (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'');
+    (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'') +
+    (M.resClashes.length?`<span class="chip static bad">${M.resClashes.length} booking clash${M.resClashes.length>1?'es':''}</span>`:'') +
+    (M.trainOver.length?`<span class="chip static bad">${M.trainOver.length} training clash${M.trainOver.length>1?'es':''}</span>`:'') +
+    (DAYS.some(bwOn)?`<span class="chip static bad">Bad weather: ${DAYS.filter(bwOn).map(d=>d[0].toUpperCase()+d.slice(1)).join(', ')}</span>`:'');
   let h = '';
-  if (S.view==='day') h = `<div class="dayhead">${dayTitle(S.day)}</div>${dayStrip(M,S.day)}<div class="gridwrap">${dayGrid(M,S.day)}</div>${roomGrid(M,S.day)}`;
-  else if (S.view==='weekend') h = DAYS.map(d=>`<div class="dayhead">${dayTitle(d)}</div>${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${roomGrid(M,d)}`).join('');
+  const dayBlock = d => `${dayHead(d)}${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${roomGrid(M,d)}${resourceGrid(M,d)}`;
+  if (S.view==='day') h = dayBlock(S.day);
+  else if (S.view==='weekend') { const ds = DAYS.filter(d=>dayHasContent(M,d)||bwOn(d)); h = ds.length ? ds.map(dayBlock).join('') : `<div class="panel">Nothing scheduled this week.</div>`; }
   else if (S.view==='message') h = messageView(M);
-  else h = `<div class="agenda">${DAYS.map(d=>agendaDay(M,d)).join('')}</div>`;
+  else { const cards = DAYS.map(d=>agendaDay(M,d)).join(''); h = `<div class="agenda">${cards || '<div class="panel">Nothing scheduled this week.</div>'}</div>` + `<div class="bwbar" style="margin:0 0 10px">${DAYS.filter(d=>dayHasContent(M,d)).map(d=>`<button class="btn bwbtn" data-bw="${d}" aria-pressed="${bwOn(d)}">${DAY_NAME[d].slice(0,3)}: ${bwOn(d)?'bad weather on':'bad weather?'}</button>`).join('')}${DAYS.some(bwOn)?'<button class="btn" data-bwlink="1">Copy link</button>':''}</div>`; }
   $('#main').innerHTML = h + (tv || S.view==='message' ? '' : issuesPanel(M));
 }
 
@@ -548,11 +748,14 @@ function msgTeamLines(i){
 function buildWeekendMessage(M){
   const L = ['Hi all,', '', `Weekend logistics – ${weekendRange()}`, ''];
   let any = false;
-  for (const day of DAYS){
+  for (const day of WEEKEND_DAYS){
     const items = M.items.filter(i=>i.day===day && MSG_KINDS.includes(i.kind));
-    if (!items.length) continue;
+    const rb = M.resBookings.filter(b=>b.day===day && !b.bad).sort((a,b)=>a.start-b.start || a.resource.localeCompare(b.resource));
+    const trd = M.train.filter(t=>t.day===day).sort((a,b)=>a.ts-b.ts || a.surface.localeCompare(b.surface));
+    if (!items.length && !rb.length && !trd.length) continue;
     any = true;
     L.push(dayTitle(day).toUpperCase());
+    if (bwOn(day)) L.push(BW_NOTE);
     const cp = items.filter(i=>i.surface && i.cp).map(i=>i.team);
     if (cp.length) L.push(`Car park marshals: ${cp.join(', ')}`);
     L.push('');
@@ -562,6 +765,16 @@ function buildWeekendMessage(M){
       list.forEach(i=>{ L.push(...msgTeamLines(i), ''); });
     }
     items.filter(i=>!i.surface).sort(byTeam).forEach(i=>{ L.push(...msgTeamLines(i), ''); });
+    if (trd.length){
+      L.push('Training');
+      trd.forEach(t=>L.push(`   ${fmtT(t.ts)}–${fmtT(t.te)} ${t.team}: ${t.cols.length>1?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}${bwOn(day)&&t.surface==='grass'?' – grass not available, needs to move':''}`));
+      L.push('');
+    }
+    if (rb.length){
+      L.push('Paddock & scrum machines');
+      rb.forEach(b=>L.push(`   ${b.resource}: ${fmtT(b.start)}–${fmtT(b.end)} ${b.team||'booked'}${b.notes?' ('+b.notes+')':''}${b.clash?' – CLASH, please speak to me':''}`));
+      L.push('');
+    }
   }
   if (!any) L.push('Nothing scheduled this weekend.', '');
   L.push('Please arrive ready to play and get changed after the match.', 'Any problems, just reply to this message.', 'Thanks,', CONFIG.MESSAGE_SIGNOFF);
@@ -590,6 +803,12 @@ $('#main').addEventListener('click', e => {
   const c = e.target.closest('[data-copy]'); if (c) copyWeekend(c);
   const r = e.target.closest('[data-reset]'); if (r && !r.disabled){ delete S.drafts[draftKey()]; render(); }
 });
+$('#main').addEventListener('click', e => {
+  const b = e.target.closest('[data-bw]');
+  if (b){ const d = iso(addDays(S.sat, DAY_OFF[b.dataset.bw])); S.bw.has(d) ? S.bw.delete(d) : S.bw.add(d); writeHash(); render(); return; }
+  const l = e.target.closest('[data-bwlink]');
+  if (l){ writeHash(); const url = location.href; (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=>flash(l,'Link copied')).catch(()=>flash(l,'Copy the address bar link')); }
+});
 $('#main').addEventListener('input', e => {
   if (e.target.id==='msgText'){ S.drafts[draftKey()] = e.target.value; const r = document.querySelector('[data-reset]'); if (r) r.disabled = false; }
 });
@@ -612,7 +831,7 @@ readHash(); load();
 setInterval(load, CONFIG.REFRESH_MINUTES*60000);
 setInterval(() => {                       // TV mode: cycle through weekend days that have pitch use
   if (!document.body.classList.contains('tv')) return;
-  const M = modelFor(S.sat), days = DAYS.filter(d=>M.items.some(i=>i.day===d && i.surface));
+  const M = modelFor(S.sat), days = DAYS.filter(d=>dayHasContent(M,d));
   if (!days.length) return;
   S.view='day'; S.day = days[(days.indexOf(S.day)+1)%days.length]; render();
 }, CONFIG.TV_CYCLE_SECONDS*1000);
