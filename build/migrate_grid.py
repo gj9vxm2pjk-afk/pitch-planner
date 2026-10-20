@@ -38,6 +38,16 @@ def parse_blocks(rows, first):
             blocks[-1]['cols'].append(c)
     return blocks
 
+def check_grid(rows):
+    """Error message if the CSV doesn't look like the grid sheet, else None (same test refresh.py applies)."""
+    dates = [r for r in rows if r and is_date(r[0])]
+    teams = [c for c in rows[1] if c.strip()] if len(rows) > 1 else []
+    if len(dates) < 20 or len(teams) < 15 or max((len(r) for r in rows), default=0) < 50:
+        return f'grid looks wrong ({len(dates)} date rows, {len(teams)} teams, expected 20+ and 15+)'
+    if not any('U12' in t for t in teams) or not any(c.strip() in VENUE for r in dates for c in r):
+        return 'grid is missing the expected team headers or HG/HA/AW codes'
+    return None
+
 def migrate(rows):
     first = next((i for i, r in enumerate(rows) if is_date(r[0] if r else '')), -1)
     if first < 2: sys.exit('FAILED: could not find the team headers or dates')
@@ -77,7 +87,13 @@ def migrate(rows):
             if re.search(r'\(A\)|\baway\b|\(H\)|\bhome\b', opp, re.I):
                 notes.append((date, b['team'], act, 'opponent name contains home/away text, check it'))
             out.append([date.isoformat(), b['team'], typ, opp, VENUE.get(venue, ''), status, extra, 'Yes' if cp else '', '; '.join(note)])
+    out.sort(key=lambda x: (x[0], [b['team'] for b in blocks].index(x[1])))
     return out, blocks, notes
+
+SHARES = {'U6': '1/3', 'U7': '1/3', 'U8': '1/3', 'U9': '1/3', 'U10': '1/3', 'U11': '1/2', 'U12 Boys': '1/2', 'U12 Girls': '1/2'}
+
+def team_rows(blocks):
+    return [[b['team'], b['group'], SHARES.get(b['team'], 'Full')] for b in blocks]
 
 def main():
     here = pathlib.Path(__file__).parent
@@ -87,13 +103,10 @@ def main():
     out, blocks, notes = migrate(rows)
     outdir.mkdir(parents=True, exist_ok=True)
     head = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Changing room', 'Notes']
-    out.sort(key=lambda x: (x[0], [b['team'] for b in blocks].index(x[1])))
     with open(outdir / 'fixtures.csv', 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f); w.writerow(head); w.writerows(out)
-    shares = {'U6': '1/3', 'U7': '1/3', 'U8': '1/3', 'U9': '1/3', 'U10': '1/3', 'U11': '1/2', 'U12 Boys': '1/2', 'U12 Girls': '1/2'}
     with open(outdir / 'teams.csv', 'w', newline='', encoding='utf-8') as f:
-        w = csv.writer(f); w.writerow(['Team', 'Group', 'Pitch share'])
-        for b in blocks: w.writerow([b['team'], b['group'], shares.get(b['team'], 'Full')])
+        w = csv.writer(f); w.writerow(['Team', 'Group', 'Pitch share']); w.writerows(team_rows(blocks))
     for d, team, act, why in notes: print(f'CHECK {d} {team}: "{act}" ({why})')
     print(f'OK: {len(out)} rows for {len(blocks)} teams written to {outdir}/')
 

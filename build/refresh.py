@@ -2,6 +2,7 @@
 """Rebuild the pitch planner from the club's Google Sheets.
 
 Usage: python3 refresh.py
+Feed:  FIXTURES_FEED=grid (default) reads the old grid sheet; FIXTURES_FEED=table reads the new table sheet.
 Reads  the first tab of each sheet through the Google Drive API, using a service account
        (key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, or a file path in $GOOGLE_APPLICATION_CREDENTIALS).
        Needs: pip install google-auth requests
@@ -11,36 +12,19 @@ Writes latest.csv, index.html (standalone page) and artifact.html (for the Claud
 Exits non-zero, leaving the previous outputs untouched, if the data fails validation.
 """
 import base64, csv, io, json, os, re, sys, datetime, pathlib
+import gsheets
 here = pathlib.Path(__file__).parent
-SHEET_IDS = {
-    'latest':   '1Maux72-4AZUgkoHtkJZOQbU7rpPlA3d339fKg8Srffo',  # WBR Age Grade Fixtures 26/27
-    'bookings': '1QAic2QwRDZUJHRQ7LHZVqVxrh-IdjqNMpTyos6FMKnE',  # WBR Paddock & Scrum Machine Bookings
-    'training': '1J8sPyVbvGTNKMwhkA0R6S07qbQBXOm0LY5cvXeNRxrY',  # WBR Training Schedule
-}
-creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON', '').strip()
-creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
-session = None
-if creds_json or creds_file:
-    try:
-        from google.oauth2 import service_account
-        from google.auth.transport.requests import AuthorizedSession
-        scopes = ['https://www.googleapis.com/auth/drive.readonly']
-        creds = (service_account.Credentials.from_service_account_info(json.loads(creds_json), scopes=scopes)
-                 if creds_json else service_account.Credentials.from_service_account_file(creds_file, scopes=scopes))
-        session = AuthorizedSession(creds)
-    except Exception as e:
-        sys.exit(f'FAILED: could not set up the Google service account ({type(e).__name__}: {e})')
+SHEET_IDS = gsheets.SHEET_IDS
+# FIXTURES_FEED=grid (default) builds the page from the old grid sheet; FIXTURES_FEED=table from the new table sheet.
+FEED = os.environ.get('FIXTURES_FEED', 'grid').strip().lower()
+if FEED not in ('grid', 'table'):
+    sys.exit(f'FAILED: FIXTURES_FEED must be "grid" or "table", not "{FEED}"')
+if FEED == 'table' and not SHEET_IDS['table']:
+    sys.exit('FAILED: FIXTURES_FEED=table but SHEET_IDS["table"] is not set')
+session = gsheets.session()
 
 def fetch_csv(name):
-    """CSV of the first tab of a sheet, via the Drive API export endpoint."""
-    url = f'https://www.googleapis.com/drive/v3/files/{SHEET_IDS[name]}/export'
-    try:
-        r = session.get(url, params={'mimeType': 'text/csv'}, timeout=60)
-    except Exception as e:
-        sys.exit(f'FAILED: could not reach Google for the {name} sheet ({type(e).__name__}: {e})')
-    if r.status_code != 200:
-        sys.exit(f'FAILED: Google returned HTTP {r.status_code} for the {name} sheet (is it shared with the service account?)')
-    return r.content.decode('utf-8-sig')
+    return gsheets.export_csv(session, SHEET_IDS[name], name)
 
 def read_b64(name, required=False):
     path = here/f'{name}.b64'
@@ -57,14 +41,25 @@ def read_b64(name, required=False):
 def load(name, required=False):
     return fetch_csv(name) if session else read_b64(name, required)
 
-text = load('latest', required=True)
-rows = list(csv.reader(io.StringIO(text)))
-dates = [r for r in rows if r and re.fullmatch(r'\s*\d{1,2}/\d{1,2}\s*', r[0])]
-teams = [c for c in rows[1] if c.strip()] if len(rows) > 1 else []
-if len(dates) < 20 or len(teams) < 15 or max(len(r) for r in rows) < 50:
-    sys.exit(f'FAILED: sheet looks wrong ({len(dates)} date rows, {len(teams)} teams, expected 20+ and 15+)')
-if not any('U12' in t for t in teams) or not any(c.strip() in ('HG','HA','AW') for r in dates for c in r):
-    sys.exit('FAILED: expected team headers or HG/HA/AW codes are missing')
+if FEED == 'table':
+    text = fetch_csv('table') if session else sys.exit('FAILED: FIXTURES_FEED=table needs a service account')
+    rows = list(csv.reader(io.StringIO(text)))
+    head = [h.strip().lower() for h in rows[0]] if rows else []
+    if not all(k in head for k in ('date', 'team', 'type', 'venue')):
+        sys.exit('FAILED: the first tab of the table sheet should have Date, Team, Type and Venue columns')
+    dates = [r for r in rows[1:] if r and r[0].strip()]
+    teams = sorted({r[head.index('team')].strip() for r in dates if len(r) > head.index('team') and r[head.index('team')].strip()})
+    if len(dates) < 100 or len(teams) < 15:
+        sys.exit(f'FAILED: table looks wrong ({len(dates)} rows, {len(teams)} teams, expected 100+ and 15+)')
+else:
+    text = load('latest', required=True)
+    rows = list(csv.reader(io.StringIO(text)))
+    dates = [r for r in rows if r and re.fullmatch(r'\s*\d{1,2}/\d{1,2}\s*', r[0])]
+    teams = [c for c in rows[1] if c.strip()] if len(rows) > 1 else []
+    if len(dates) < 20 or len(teams) < 15 or max(len(r) for r in rows) < 50:
+        sys.exit(f'FAILED: sheet looks wrong ({len(dates)} date rows, {len(teams)} teams, expected 20+ and 15+)')
+    if not any('U12' in t for t in teams) or not any(c.strip() in ('HG','HA','AW') for r in dates for c in r):
+        sys.exit('FAILED: expected team headers or HG/HA/AW codes are missing')
 # optional second input: the paddock & scrum machine bookings sheet (bookings.b64, same base64 CSV export)
 bookings_text = load('bookings')
 if bookings_text.strip():
@@ -82,11 +77,11 @@ stamp = datetime.datetime.now().strftime('%-d %b %H:%M')
 crest = here/'crest.jpg'
 crest_uri = 'data:image/jpeg;base64,' + base64.b64encode(crest.read_bytes()).decode() if crest.exists() else ''
 full = src.replace('/*SAMPLE_CSV*/""', json.dumps(text)).replace('/*SNAPSHOT_DATE*/""', json.dumps(stamp)).replace('/*BOOKINGS_CSV*/""', json.dumps(bookings_text)).replace('/*TRAINING_CSV*/""', json.dumps(training_text)).replace('__CREST__', crest_uri)
-(here/'latest.csv').write_text(text)
+(here/('latest.csv' if FEED == 'grid' else 'fixtures_table.csv')).write_text(text)
 (here/'index.html').write_text(full)
 head = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
 art = full.replace(head, '').replace('</head>\n<body>\n', '').replace('</body>\n</html>\n', '')
 assert art != full and art.lstrip().startswith('<title>'), 'artifact wrapper strip failed'
 (here/'artifact.html').write_text(art)
 nb = max(0, len([l for l in bookings_text.splitlines() if l.strip()]) - 1)
-print(f'OK: {len(dates)} fixture dates, {len(teams)} teams, {nb} booking rows, {max(0, len([l for l in training_text.splitlines() if l.strip()]) - 1)} training rows, copied {stamp}')
+print(f'OK ({FEED} feed): {len(dates)} fixture rows, {len(teams)} teams, {nb} booking rows, {max(0, len([l for l in training_text.splitlines() if l.strip()]) - 1)} training rows, copied {stamp}')
