@@ -277,6 +277,45 @@ function parseGrid(rows){
   }
   return items;
 }
+/* Tidy table format: one row per fixture or session. Columns (any order, header names are case-insensitive):
+   Date, Team, Type, Opponent, Venue, Status, Competition, Changing room, Notes. */
+const TABLE_VENUE = {'home grass':'HG','home agp':'HA','away':'AW','hg':'HG','ha':'HA','aw':'AW'};
+const TABLE_SESSION = /^(training|pre-?season|indoors|joint training)$/i;
+function isFixtureTable(rows){
+  const head = (rows[0]||[]).map(h=>String(h).trim().toLowerCase());
+  return ['date','team','type','venue'].every(k=>head.includes(k));
+}
+function parseFixtureTable(rows){
+  const head = rows[0].map(h=>String(h).trim().toLowerCase()), ix = n => head.indexOf(n);
+  const c = {date:ix('date'), team:ix('team'), type:ix('type'), opp:ix('opponent'), venue:ix('venue'), status:ix('status'),
+             comp:ix('competition'), cp:ix('changing room'), notes:ix('notes'), group:ix('group')};
+  const get = (r,i) => i>=0 ? String(r[i]||'').trim() : '';
+  const items=[], bad=[];
+  for (const [n,r] of rows.slice(1).entries()){
+    if (!r.some(x=>String(x||'').trim())) continue;
+    const team = cleanTeam(get(r,c.team)); if (/^example/i.test(team)) continue;
+    const date = parseSheetDate(get(r,c.date));
+    if (!date || !team) { bad.push(`row ${n+2} (${!team ? 'no team' : 'date "'+get(r,c.date)+'" not recognised'})`); continue; }
+    const type = get(r,c.type).toLowerCase(), vtxt = get(r,c.venue), vkey = vtxt.toLowerCase();
+    const venue = TABLE_VENUE[vkey] || '', badVenue = vtxt && !venue ? vtxt : '';
+    const isSession = TABLE_SESSION.test(type), isFest = /fest/.test(type);
+    const act = get(r,c.opp) || (isSession || isFest ? get(r,c.type) : '');
+    if (!act && !venue) continue;
+    let kind;
+    if (venue==='AW') kind='away';
+    else if (venue) kind = isSession ? 'session' : isFest ? 'festival' : 'match';
+    else kind = isSession ? 'training' : isFest ? 'festival-off' : 'other';
+    const extra = [get(r,c.comp), get(r,c.notes)].filter(Boolean).join(' · ');
+    const status = get(r,c.status).toLowerCase();
+    items.push({date, team, group: c.group>=0 && get(r,c.group) ? groupKey(get(r,c.group)) : groupFromTeam(team),
+      act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind,
+      surface: venue==='HG'?'grass':venue==='HA'?'agp':'',
+      unconfirmed: !!status && !/^confirmed$/.test(status), mismatch:false});
+  }
+  if (bad.length) throw new Error('fixtures table has rows to fix: ' + bad.slice(0,5).join('; ') + (bad.length>5 ? ` and ${bad.length-5} more` : ''));
+  return items;
+}
+const parseFixtures = rows => isFixtureTable(rows) ? parseFixtureTable(rows) : parseGrid(rows);
 function weekLetter(sat){
   const a = new Date(CONFIG.WEEK_A_START+'T00:00:00'), n = Math.round((addDays(sat,-5) - a)/(7*86400000));
   return ((n%2)+2)%2===0 ? 'A' : 'B';
@@ -376,10 +415,10 @@ async function fetchRows(url){
 async function load(){
   try{
     if (!CONFIG.FIXTURES_CSV_URL){
-      DATA = {items: parseGrid(parseCSV(SAMPLE_CSV)), bookings: BOOKINGS_CSV ? parseBookings(parseCSV(BOOKINGS_CSV)) : [], training: TRAINING_CSV ? parseTraining(parseCSV(TRAINING_CSV)) : [], sample:true};
+      DATA = {items: parseFixtures(parseCSV(SAMPLE_CSV)), bookings: BOOKINGS_CSV ? parseBookings(parseCSV(BOOKINGS_CSV)) : [], training: TRAINING_CSV ? parseTraining(parseCSV(TRAINING_CSV)) : [], sample:true};
     } else {
       if (CONFIG.CONFIG_CSV_URL) applyConfigRows(await fetchRows(CONFIG.CONFIG_CSV_URL));
-      DATA = {items: parseGrid(await fetchRows(CONFIG.FIXTURES_CSV_URL)), bookings: CONFIG.BOOKINGS_CSV_URL ? parseBookings(await fetchRows(CONFIG.BOOKINGS_CSV_URL)) : [], training: CONFIG.TRAINING_CSV_URL ? parseTraining(await fetchRows(CONFIG.TRAINING_CSV_URL)) : [], sample:false};
+      DATA = {items: parseFixtures(await fetchRows(CONFIG.FIXTURES_CSV_URL)), bookings: CONFIG.BOOKINGS_CSV_URL ? parseBookings(await fetchRows(CONFIG.BOOKINGS_CSV_URL)) : [], training: CONFIG.TRAINING_CSV_URL ? parseTraining(await fetchRows(CONFIG.TRAINING_CSV_URL)) : [], sample:false};
     }
     LAST_OK = new Date(); ERROR='';
   }catch(e){ ERROR = 'Could not refresh the sheet (' + e.message + '). Showing the last good data.'; }

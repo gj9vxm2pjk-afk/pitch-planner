@@ -4,3 +4,5 @@ training.b64
 latest.csv
 index.html
 artifact.html
+fixtures_table.csv
+migrated/
