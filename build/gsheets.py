@@ -11,7 +11,7 @@ SHEET_IDS = {
     'latest':   '1Maux72-4AZUgkoHtkJZOQbU7rpPlA3d339fKg8Srffo',  # WBR Age Grade Fixtures 26/27 (old grid sheet)
     'bookings': '1QAic2QwRDZUJHRQ7LHZVqVxrh-IdjqNMpTyos6FMKnE',  # WBR Paddock & Scrum Machine Bookings
     'training': '1J8sPyVbvGTNKMwhkA0R6S07qbQBXOm0LY5cvXeNRxrY',  # WBR Training Schedule
-    'table':    '',                                              # new table-format fixtures sheet (set when it exists)
+    'table':    '1tyHepQWdOvekFNW3gSeV_8pICxETJMfHZktI7c6tOCY',                                              # new table-format fixtures sheet (set when it exists)
 }
 READ = ['https://www.googleapis.com/auth/drive.readonly']
 WRITE = READ + ['https://www.googleapis.com/auth/spreadsheets']
