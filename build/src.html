@@ -372,7 +372,8 @@ function parseFixtureTable(rows){
     items.push({date, team, group: c.group>=0 && get(r,c.group) ? groupKey(get(r,c.group)) : groupFromTeam(team),
       act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind, ko: c.ko>=0 ? parseHM(get(r,c.ko)) : null, win: parseWindow(get(r,c.win)),
       surface: venue==='HG'?'grass':venue==='HA'?'agp':'',
-      unconfirmed: !!status && !/^confirmed$/.test(status), mismatch:false});
+      unconfirmed: !!status && !/^confirmed$/.test(status),
+      mismatch: (venue && venue!=='AW' && /\(A\)|\baway\b/i.test(act)) || (venue==='AW' && /\(H\)|\(home|\bhome\b/i.test(act))});
   }
   if (bad.length) throw new Error('fixtures table has rows to fix: ' + bad.slice(0,5).join('; ') + (bad.length>5 ? ` and ${bad.length-5} more` : ''));
   return items;

@@ -2,7 +2,7 @@
 """Rebuild the pitch planner from the club's Google Sheets.
 
 Usage: python3 refresh.py
-Feed:  FIXTURES_FEED=grid (default) reads the old grid sheet; FIXTURES_FEED=table reads the new table sheet.
+Feed:  FIXTURES_FEED=table (default) reads the table sheet; FIXTURES_FEED=grid reads the old grid sheet.
 Reads  the first tab of each sheet through the Google Drive API, using a service account
        (key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, or a file path in $GOOGLE_APPLICATION_CREDENTIALS).
        Needs: pip install google-auth requests
@@ -15,8 +15,8 @@ import base64, csv, io, json, os, re, sys, datetime, pathlib
 import gsheets
 here = pathlib.Path(__file__).parent
 SHEET_IDS = gsheets.SHEET_IDS
-# FIXTURES_FEED=grid (default) builds the page from the old grid sheet; FIXTURES_FEED=table from the new table sheet.
-FEED = os.environ.get('FIXTURES_FEED', 'grid').strip().lower()
+# FIXTURES_FEED=table (default) builds the page from the table sheet; FIXTURES_FEED=grid from the old grid sheet.
+FEED = os.environ.get('FIXTURES_FEED', 'table').strip().lower()
 if FEED not in ('grid', 'table'):
     sys.exit(f'FAILED: FIXTURES_FEED must be "grid" or "table", not "{FEED}"')
 if FEED == 'table' and not SHEET_IDS['table']:
