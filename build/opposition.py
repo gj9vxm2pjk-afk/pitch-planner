@@ -10,45 +10,10 @@ Edit ALIAS (spelling variants) and NOT_CLUB (labels that are not clubs) below wh
 """
 import collections, re, sys
 import gsheets
+from opponents import clean_parts, SUSPECT
 
 LONG, SUMMARY = 'Opposition clubs', 'Opposition clubs (summary)'
 SOURCE = 'WBR fixtures 26/27'
-
-# variant spelling (lower case) -> the name we show
-ALIAS = {
-    "t'dale": 'Tynedale', 'tdale': 'Tynedale', 'tyndale': 'Tynedale', "w'end": 'Wallsend', 'wend': 'Wallsend',
-    'n shields': 'North Shields', 'pp': 'Percy Park', 'ppark': 'Percy Park', 'pont': 'Ponteland', 'novo': 'Novos',
-    'novocastrians': 'Novos', 'wovos': 'Novos', 'jarrovarians': 'Jarrovians', 'bishop auck': 'Bishop Auckland',
-    'north allerton': 'Northallerton', 'horden': 'Peterlee & Horden', 'peterlee': 'Peterlee & Horden',
-    'hartlepool rovers': 'Hartlepool Rovers', 'poppy sword consett': 'Consett',
-}
-# names that look like a typo or a one-off: shown in the Notes column (Blyton and Creighton checked with the club coordinator: both fine)
-SUSPECT = {}
-# whole labels that are events, training or admin, not clubs (regex, matched on the lower-case raw text)
-NOT_CLUB = re.compile(r'fest|cup|league|leag |training|train\b|paddock|tour\b|swap|moved|game request|friendly|fnl|^tour$|second stage|joint')
-# words/brackets that only describe the fixture, removed before the club name is read
-NOISE = [r'\([^)]*\)', r'@\s*\w[\w ]*', r'\bhome-?w/e\b', r'\bneed to be away\b', r'\b(away|home)\b', r'\s-\s*cc\b', r'\bcc\b', r'\b[0-9]+s\b', r'\ba$']
-
-def clean_parts(raw):
-    """Club names in an Opponent cell, or ([], reason) when it is not a club."""
-    t = raw.strip()
-    if not t: return [], ''
-    low = t.lower()
-    if NOT_CLUB.search(re.sub(r'\([^)]*\)', '', low)): return [], 'event, training or admin label'   # a bracket such as (Tour) does not hide the club
-    if re.fullmatch(r'[\d\s]+', low): return [], 'just a number: check what it is'
-    inner = re.fullmatch(r'\(([^)]+)\)\s*.*', t)                 # "(Percy Park) Away": the club is the bracketed part
-    if inner: low = inner.group(1).lower()
-    low = re.sub(r'horden\s*/\s*peterlee|peterlee\s*/\s*horden', 'peterlee and horden', low)
-    for pat in NOISE: low = re.sub(pat, ' ', low)
-    parts = [p.strip(" .-") for p in re.split(r'\s*/\s*|\s*&\s*|\s+and\s+', low)]
-    parts = [re.sub(r'\s+a$', '', re.sub(r'\s+', ' ', p)).strip() for p in parts if p]
-    if any(re.match(r'u\d+\b|colts|\d(st|nd) xv', p) for p in parts): return [], 'a WBR team name, not a club'
-    parts = [p for p in parts if p]
-    names = []
-    for p in parts:
-        if p == 'peterlee and horden': names.append('Peterlee & Horden'); continue
-        names.append(ALIAS.get(p) or ' '.join(w.capitalize() for w in p.split()))
-    return names, ''
 
 def side(team):
     return 'Girls' if 'girls' in team.lower() else 'Boys' if re.search(r'boys|colts', team.lower()) else 'Mixed'

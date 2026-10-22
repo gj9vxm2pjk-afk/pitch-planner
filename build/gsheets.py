@@ -81,3 +81,8 @@ def sheet_ids(sess, sheet_id, label):
 def batch_update(sess, sheet_id, requests, label):
     """Send formatting/validation requests (dropdowns, conditional formats, protected ranges)."""
     _call(sess, 'post', f'{SHEETS}/{sheet_id}:batchUpdate', label, json={'requests': requests})
+
+def batch_put(sess, sheet_id, data, label):
+    """Write several exact ranges in one call: data is a list of (range, rows)."""
+    _call(sess, 'post', f'{SHEETS}/{sheet_id}/values:batchUpdate', label, json={
+        'valueInputOption': 'RAW', 'data': [{'range': r, 'majorDimension': 'ROWS', 'values': v} for r, v in data]})

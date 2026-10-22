@@ -13,6 +13,7 @@ Needs a service account with Editor access to the new sheet (see gsheets.py).
 """
 import csv, datetime, io, re, sys
 import gsheets, migrate_grid
+from opponents import tidy
 
 HEAD = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Car park duty', 'Notes']
 HAND = ['Session time']    # column J, editable by hand in the sheet (pre-filled with a default, see below)
@@ -39,8 +40,9 @@ N = len(HEAD)
 MAX_DROP = 0.2
 
 def key(row):
-    """Date + Team + Opponent, tolerant of the sheet showing dates as dd/mm/yyyy instead of yyyy-mm-dd."""
-    c = [str(x).strip() for x in row] + [''] * 4
+    """Date + Team + Opponent (tidied), tolerant of the sheet showing dates as dd/mm/yyyy instead of yyyy-mm-dd."""
+    c = [str(x).strip() for x in row] + [''] * 5
+    c[3] = tidy(c[3], c[4])[0]                                  # a cleaned and a not-yet-cleaned name give the same key
     d = c[0]
     for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y'):
         try: d = datetime.datetime.strptime(d, fmt).date().isoformat(); break
@@ -84,6 +86,8 @@ def main(argv):
     out, blocks, notes = migrate_grid.migrate(rows)
     current = gsheets.get_values(sess, target, 'Fixtures!A1:J', 'the current Fixtures tab')
     hand, lost = keep_hand_columns(current, out)
+    for r in out:                                                 # same cautious tidy-up as clean_opponents.py
+        r[3], r[8] = tidy(r[3], r[4], r[8])
     fixtures = [HEAD] + out
     teams = [['Team', 'Group', 'Pitch share']] + migrate_grid.team_rows(blocks)
     sync_notes = [['Date', 'Team', 'Original text', 'What the sync did']] + [[d.isoformat(), t, a, w] for d, t, a, w in notes]
