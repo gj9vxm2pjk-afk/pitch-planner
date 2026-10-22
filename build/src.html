@@ -334,7 +334,7 @@ function parseGrid(rows){
   return items;
 }
 /* Tidy table format: one row per fixture or session. Columns (any order, header names are case-insensitive):
-   Date, Team, Type, Opponent, Venue, Status, Competition, Changing room, Notes. */
+   Date, Team, Type, Opponent, Venue, Status, Competition, Car park duty, Notes, Kick-off, Referee. */
 const TABLE_VENUE = {'home grass':'HG','home agp':'HA','away':'AW','hg':'HG','ha':'HA','aw':'AW'};
 const TABLE_SESSION = /^(training|pre-?season|indoors|joint training)$/i;
 function isFixtureTable(rows){
@@ -344,7 +344,7 @@ function isFixtureTable(rows){
 function parseFixtureTable(rows){
   const head = rows[0].map(h=>String(h).trim().toLowerCase()), ix = n => head.indexOf(n);
   const c = {date:ix('date'), team:ix('team'), type:ix('type'), opp:ix('opponent'), venue:ix('venue'), status:ix('status'),
-             comp:ix('competition'), cp:(ix('car park duty')>=0 ? ix('car park duty') : ix('changing room')), notes:ix('notes'), group:ix('group'), ko:ix('kick-off')};
+             comp:ix('competition'), cp:(ix('car park duty')>=0 ? ix('car park duty') : ix('changing room')), notes:ix('notes'), group:ix('group'), ko:ix('kick-off'), ref:ix('referee')};
   const get = (r,i) => i>=0 ? String(r[i]||'').trim() : '';
   const items=[], bad=[];
   for (const [n,r] of rows.slice(1).entries()){
@@ -364,7 +364,7 @@ function parseFixtureTable(rows){
     const extra = [get(r,c.comp), get(r,c.notes)].filter(Boolean).join(' · ');
     const status = get(r,c.status).toLowerCase();
     items.push({date, team, group: c.group>=0 && get(r,c.group) ? groupKey(get(r,c.group)) : groupFromTeam(team),
-      act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind, ko: c.ko>=0 ? parseHM(get(r,c.ko)) : null,
+      act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind, ko: c.ko>=0 ? parseHM(get(r,c.ko)) : null, ref: get(r,c.ref),
       surface: venue==='HG'?'grass':venue==='HA'?'agp':'',
       unconfirmed: !!status && !/^confirmed$/.test(status), mismatch:false});
   }
@@ -877,7 +877,7 @@ function msgTeamLines(i){
     return [`🚌 ${i.team} – away ${isMatch ? 'v ' + (opp || '[opponent TBC]') : opp}${extra}`, `   Meet [time] at [ground] · KO [time]`];
   const head = i.kind==='match' ? `🏉 ${i.team} v ${opp || '[opponent TBC]'}` : `🏉 ${i.team} – ${opp || 'session'}`;
   const t = [i.ko!=null ? `${when} · KO ${fmtT(i.ko)}` : `${when} · KO [time]`];
-  if (isMatch) t.push('Ref [TBC]');
+  if (isMatch) t.push(i.ref ? `🧑‍⚖️ ${i.ref}` : 'Ref [TBC]');
   const p = [`🏟 ${posLabel(i)}${i.sharedWith.length ? ' (shared)' : ''}${i.over ? ' – to be confirmed' : ''}`];
   if (i.room !== undefined) p.push(i.room==null ? '🚪 none free – speak to me' : `🚪 Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors ${i.roomAway})` : ' (visitors: none free)') : ''}`);
   if (!i.noCp && i.cp) p.push('🅿️ car park duty');
