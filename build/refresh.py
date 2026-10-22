@@ -4,7 +4,8 @@
 Usage: python3 refresh.py
 Feed:  FIXTURES_FEED=grid (default) reads the old grid sheet; FIXTURES_FEED=table reads the new table sheet.
 Reads  the first tab of each sheet through the Google Drive API, using a service account
-       (key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, or a file path in $GOOGLE_APPLICATION_CREDENTIALS).
+       (key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, the same JSON base64-encoded in $GOOGLE_SERVICE_ACCOUNT_JSON_B64,
+       or a file path in $GOOGLE_APPLICATION_CREDENTIALS).
        Needs: pip install google-auth requests
 Fallback when no service account is configured: latest.b64, bookings.b64 and training.b64
        (base64 text of each sheet's CSV export, saved by hand).

@@ -5,7 +5,7 @@
 ## Run it
 
 1. `pip install google-auth requests`
-2. Provide the service account key in the environment: `GOOGLE_SERVICE_ACCOUNT_JSON` (the key's JSON) or `GOOGLE_APPLICATION_CREDENTIALS` (path to the key file).
+2. Provide the service account key in the environment: `GOOGLE_SERVICE_ACCOUNT_JSON` (the key's JSON), `GOOGLE_SERVICE_ACCOUNT_JSON_B64` (the same JSON base64-encoded, for settings boxes that only take one plain `KEY=value` line), or `GOOGLE_APPLICATION_CREDENTIALS` (path to the key file). To make the base64 form: `base64 -i key.json | tr -d '\n'` on Mac/Linux, or `[Convert]::ToBase64String([IO.File]::ReadAllBytes("key.json"))` in PowerShell.
 3. `python3 refresh.py` validates the data and writes `build/index.html`.
 4. Copy `build/index.html` to the repo root as `index.html` and commit it. Cloudflare and GitHub Pages publish from the root.
 

@@ -1,10 +1,12 @@
 """Google Sheets/Drive access with a service account, shared by refresh.py and sync_tables.py.
 
-Credentials: key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, or a file path in $GOOGLE_APPLICATION_CREDENTIALS.
+Credentials, first one found wins: the key JSON in $GOOGLE_SERVICE_ACCOUNT_JSON, the same JSON base64-encoded in
+$GOOGLE_SERVICE_ACCOUNT_JSON_B64 (for settings boxes that only take one plain KEY=value line), or a file path in
+$GOOGLE_APPLICATION_CREDENTIALS.
 Needs: pip install google-auth requests
 Every helper exits with a "FAILED: ..." message on error, so callers never carry on with partial data.
 """
-import json, os, sys
+import base64, json, os, sys
 from urllib.parse import quote
 
 SHEET_IDS = {
@@ -17,21 +19,43 @@ READ = ['https://www.googleapis.com/auth/drive.readonly']
 WRITE = READ + ['https://www.googleapis.com/auth/spreadsheets']
 SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets'
 
+def _key_info():
+    """The service account key as a dict from the environment, or None if neither key variable is set.
+    Error messages never include the value."""
+    raw = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON', '').strip()
+    b64 = ''.join(os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON_B64', '').split())
+    if raw:
+        name, text = 'GOOGLE_SERVICE_ACCOUNT_JSON', raw
+    elif b64:
+        name = 'GOOGLE_SERVICE_ACCOUNT_JSON_B64'
+        try:
+            text = base64.b64decode(b64, validate=True).decode('utf-8')
+        except Exception as e:
+            sys.exit(f'FAILED: could not decode {name} ({type(e).__name__})')
+    else:
+        return None
+    try:
+        info = json.loads(text)
+        if not isinstance(info, dict): raise ValueError
+        return info
+    except Exception as e:
+        sys.exit(f'FAILED: {name} is not valid JSON ({type(e).__name__})')
+
 def session(write=False):
     """An authorised HTTP session, or None when no service account is configured."""
-    creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON', '').strip()
+    info = _key_info()
     creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '').strip()
-    if not (creds_json or creds_file):
+    if info is None and not creds_file:
         return None
     try:
         from google.oauth2 import service_account
         from google.auth.transport.requests import AuthorizedSession
         scopes = WRITE if write else READ
-        creds = (service_account.Credentials.from_service_account_info(json.loads(creds_json), scopes=scopes)
-                 if creds_json else service_account.Credentials.from_service_account_file(creds_file, scopes=scopes))
+        creds = (service_account.Credentials.from_service_account_info(info, scopes=scopes)
+                 if info is not None else service_account.Credentials.from_service_account_file(creds_file, scopes=scopes))
         return AuthorizedSession(creds)
     except Exception as e:
-        sys.exit(f'FAILED: could not set up the Google service account ({type(e).__name__}: {e})')
+        sys.exit(f'FAILED: could not set up the Google service account ({type(e).__name__})')
 
 def _call(sess, method, url, label, **kw):
     try:
