@@ -863,24 +863,20 @@ function msgTeamLines(i){
   const opp = (i.act||'').replace(/\s+/g,' ').trim(), slot = slotById(i.slot);
   const isMatch = i.kind==='match' || (i.kind==='away' && !SESSION_RE.test(opp) && !/fest/i.test(opp));
   const extra = i.extra ? ` (${i.extra})` : '';
-  if (i.paddock){                                               // U6: always the paddock, nobody else books it then
-    return [`${i.team} – PADDOCK${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   Paddock ${fmtT(slot.s)}–${fmtT(slot.e)} | no other bookings at this time`];
-  }
-  if (!i.surface){                                              // away or off-site
-    const what = isMatch ? `${i.team} – AWAY v ${opp || '[opponent TBC]'}` : `${i.team} – AWAY: ${opp}`;
-    return [`${what}${extra}`, `   Meet at [time] at [ground] | Kick-off [time]${isMatch ? ' | Referee [TBC]' : ''}`];
-  }
-  const head = i.kind==='match' ? `${i.team} – HOME v ${opp || '[opponent TBC]'}` : i.kind==='session' ? `${i.team} – SESSION: ${opp}` : `${i.team} – EVENT: ${opp}`;
-  const t = [`${i.ko!=null ? 'Pitch' : 'Slot'} ${fmtT(slot.s)}–${fmtT(slot.e)}`, i.ko!=null ? `Kick-off ${fmtT(i.ko)}` : `Kick-off [time]`];
-  if (isMatch) t.push('Referee [TBC]');
-  const p = [`Pitch: ${posLabel(i)} (${sizeLabel(i)})${i.sharedWith.length ? ', shared with ' + i.sharedWith.map(o=>o.team).join(', ') : ''}`];
-  if (i.over) p.push('pitch to be confirmed');
-  if (i.room !== undefined) p.push(i.room==null ? 'Changing room: none free, please speak to me' : `Changing room: Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors: Room ${i.roomAway})` : ' (visitors: no room free, please speak to me)') : ''} (from about ${fmtT(slot.e)})`);
-  if (!i.noCp) p.push(i.cp ? 'Car park: your team is marshalling' : 'Car park: not on duty');
-  return [`${head}${extra}`, `   ${t.join(' | ')}`, `   ${p.join(' | ')}`];
+  const when = `⏰ ${fmtT(slot.s)}–${fmtT(slot.e)}`;
+  if (i.paddock) return [`🌱 ${i.team} – Paddock${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   ${when}`];
+  if (!i.surface)                                                // away or off-site
+    return [`🚌 ${i.team} – away ${isMatch ? 'v ' + (opp || '[opponent TBC]') : opp}${extra}`, `   Meet [time] at [ground] · KO [time]`];
+  const head = i.kind==='match' ? `🏉 ${i.team} v ${opp || '[opponent TBC]'}` : `🏉 ${i.team} – ${opp || 'session'}`;
+  const t = [i.ko!=null ? `${when} · KO ${fmtT(i.ko)}` : `${when} · KO [time]`];
+  if (isMatch) t.push('Ref [TBC]');
+  const p = [`🏟 ${posLabel(i)}${i.sharedWith.length ? ' (shared)' : ''}${i.over ? ' – to be confirmed' : ''}`];
+  if (i.room !== undefined) p.push(i.room==null ? '🚪 none free – speak to me' : `🚪 Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors ${i.roomAway})` : ' (visitors: none free)') : ''}`);
+  if (!i.noCp && i.cp) p.push('🅿️ car park duty');
+  return [`${head}${extra}`, `   ${t.join(' · ')}`, `   ${p.join(' · ')}`];
 }
 function buildWeekendMessage(M){
-  const L = ['Hi all,', '', `Weekend logistics – ${weekendRange()}`, ''];
+  const L = ['Hi all 👋', '', `📅 Weekend ${weekendRange()}`, ''];
   let any = false;
   for (const day of WEEKEND_DAYS){
     const items = M.items.filter(i=>i.day===day && MSG_KINDS.includes(i.kind));
@@ -888,10 +884,10 @@ function buildWeekendMessage(M){
     const trd = M.train.filter(t=>t.day===day).sort((a,b)=>a.ts-b.ts || a.surface.localeCompare(b.surface));
     if (!items.length && !rb.length && !trd.length) continue;
     any = true;
-    L.push(dayTitle(day).toUpperCase());
-    if (bwOn(day)) L.push(BW_NOTE);
+    L.push(`— ${dayTitle(day).toUpperCase()} —`);
+    if (bwOn(day)) L.push('🌧 ' + BW_NOTE);
     const cp = items.filter(i=>i.surface && i.cp).map(i=>i.team);
-    if (cp.length) L.push(`Car park marshals: ${cp.join(', ')}`);
+    if (cp.length) L.push(`🅿️ Car park: ${cp.join(', ')}`);
     L.push('');
     const byTeam = (a,b)=>GROUP_ORDER.indexOf(a.group)-GROUP_ORDER.indexOf(b.group) || seniority(a.team)-seniority(b.team);
     for (const sl of CONFIG.SLOTS){
@@ -900,18 +896,18 @@ function buildWeekendMessage(M){
     }
     items.filter(i=>!i.surface).sort(byTeam).forEach(i=>{ L.push(...msgTeamLines(i), ''); });
     if (trd.length){
-      L.push('Training');
-      trd.forEach(t=>L.push(`   ${fmtT(t.ts)}–${fmtT(t.te)} ${t.team}: ${t.cols.length>1?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}${bwOn(day)&&t.surface==='grass'?' – grass not available, needs to move':''}`));
+      L.push('🏃 Training');
+      trd.forEach(t=>L.push(`   ${fmtT(t.ts)}–${fmtT(t.te)} ${t.team} · ${t.cols.length>1?SURF[t.surface]+' 1+2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half)':''}${bwOn(day)&&t.surface==='grass'?' – grass not available, needs to move':''}`));
       L.push('');
     }
     if (rb.length){
-      L.push('Paddock & scrum machines');
-      rb.forEach(b=>L.push(`   ${b.resource}: ${fmtT(b.start)}–${fmtT(b.end)} ${b.team||'booked'}${b.notes?' ('+b.notes+')':''}${b.clash?' – CLASH, please speak to me':''}`));
+      L.push('🥅 Paddock & scrum machines');
+      rb.forEach(b=>L.push(`   ${fmtT(b.start)}–${fmtT(b.end)} ${b.resource} · ${b.team||'booked'}${b.notes?' ('+b.notes+')':''}${b.clash?' ⚠️ clash – speak to me':''}`));
       L.push('');
     }
   }
   if (!any) L.push('Nothing scheduled this weekend.', '');
-  L.push('Please arrive ready to play and get changed after the match.', 'Any problems, just reply to this message.', 'Thanks,', CONFIG.MESSAGE_SIGNOFF);
+  L.push('Any problems, just reply here. Thanks! 🙏', CONFIG.MESSAGE_SIGNOFF);
   return L.join('\n');
 }
 S.drafts = {};
@@ -919,7 +915,7 @@ const draftKey = () => iso(S.sat);
 function weekendText(M){ return S.drafts[draftKey()] ?? buildWeekendMessage(M); }
 function messageView(M){
   const edited = S.drafts[draftKey()] !== undefined;
-  return `<div class="mintro"><p>Filled in from the sheet. Fill in the [bracketed] gaps, edit anything you like, then copy it. Your edits are kept for this weekend until you reset. Pitch slots and room times are estimates until kick-off times are in the sheet.</p>
+  return `<div class="mintro"><p>Fill in the [gaps], edit if you like, then copy. Edits are kept until you reset.</p>
     <span><button class="btn primary" data-copy="msg">Copy message</button> <button class="btn" data-reset="msg" ${edited?'':'disabled'}>Reset</button></span></div>
     <textarea id="msgText" class="msgbox" spellcheck="false" aria-label="Weekend message">${esc(weekendText(M))}</textarea>`;
 }
