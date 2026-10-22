@@ -26,10 +26,10 @@ Group is one of MINIS, JUNIOR BOYS, JUNIOR GIRLS, WOMEN. Pitch share is 1/3, 1/2
 
 Current teams: U6, U7, U8, U9, U10, U11, U12 Boys, U13 Boys, U14 Boys, U15 Boys, U16 Boys, Colts, U12 Girls, U14 Girls, U16 Girls, U18 Girls, 1st XV, 2nd XV. Shares: U6–U10 1/3, U11 and U12 1/2, all others Full.
 
-## Hand-entered columns on the Fixtures tab: Kick-off, Referee and Session time
-Columns J (**Kick-off**, `HH:MM`), K (**Referee**, a name) and L (**Session time**, `09:00–10:30`) are typed by hand. While "Sync from grid" is ON the sync rewrites A:I only; it re-attaches J:L to the right row by Date + Team + Opponent, and lists any value whose row has disappeared on the Sync notes tab. A fixture with a Kick-off gets its own pitch window in the app (see Seniors below); **Session time** is pre-filled for Sunday home sessions with the same default the app uses (minis 09:00–10:30, junior boys 10:30–12:30, everyone else 12:30–15:00). Type over it to change a fixture's window (e.g. `10:00–11:30`, shared pitches still pair up when the window matches a standard slot); clear the cell and the next sync puts the default back. A Kick-off, if set, wins over Session time. A Referee name replaces "Ref [TBC]" in the weekend message.
+## Session time on the Fixtures tab
+Column J (**Session time**, `09:00–10:30`) is pre-filled for Sunday home sessions with the same default the app uses (minis 09:00–10:30, junior boys 10:30–12:30, everyone else 12:30–15:00). Type over it to change a fixture's window (e.g. `10:00–11:30`; shared pitches still pair up when the window matches a standard slot). Clear the cell and the next sync puts the default back. While "Sync from grid" is ON the sync rewrites A:I only and keeps column J, re-attaching it to the right row by Date + Team + Opponent; a value whose row has disappeared is listed on the Sync notes tab.
 
-`python3 validate_table.py --apply` (run once) adds the dropdowns (Team, Type, Venue, Status, Car park duty), date and time checks, highlighting of duplicate or opponent-less rows, and a frozen, warning-protected header row.
+`python3 validate_table.py --apply` (run once) adds the dropdowns (Team, Type, Venue, Status, Car park duty), date and session-time checks, highlighting of duplicate or opponent-less rows, and a frozen, warning-protected header row.
 
 ## Optional tab: Seniors (senior men's fixtures)
 The senior men's teams (Men's 1st XV, Vikings, Rangers, Vets) are not in the grid sheet, so their home and away fixtures go on a **Seniors** tab in this same sheet. The grid sync never touches it. Use the same columns as the Fixtures tab, plus **Kick-off** and **Group**:

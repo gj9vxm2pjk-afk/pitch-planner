@@ -6,7 +6,7 @@ Reads  the first tab of the old grid sheet, converts it with migrate_grid.migrat
        new sheet's Fixtures, Teams and Sync notes tabs. Dropdowns, protection and formatting are left alone.
 Only runs while the new sheet's Config tab has  "Sync from grid" = ON  (cells A1:B1). Set it to OFF to cut over:
        after that the new sheet is maintained by hand and this script never touches it again.
-Columns J:L (Kick-off, Referee, Session time) are typed by hand: the sync never overwrites them, and re-attaches each value to its
+Column J (Session time) is editable by hand: the sync never overwrites them, and re-attaches the value to its
 row by Date + Team + Opponent when the grid moves rows around. A value whose row has disappeared is listed in Sync notes.
 Writes "Last synced" to Config!B2. Aborts without writing if the grid looks wrong or the row count drops by more than 20%.
 Needs a service account with Editor access to the new sheet (see gsheets.py).
@@ -15,7 +15,7 @@ import csv, datetime, io, re, sys
 import gsheets, migrate_grid
 
 HEAD = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Car park duty', 'Notes']
-HAND = ['Kick-off', 'Referee', 'Session time']    # columns J:L, entered by hand in the sheet (Session time is pre-filled, see below)
+HAND = ['Session time']    # column J, editable by hand in the sheet (pre-filled with a default, see below)
 
 # Default Sunday session window by team: the same rule as the app (src.html: CONFIG.SLOTS, SLOT_BY_GROUP, SLOT_BY_TEAM, groupFromTeam).
 # Keep the two in step. The sync writes it into a BLANK Session time cell only, so anything typed there is never replaced.
@@ -55,7 +55,7 @@ def keep_hand_columns(current, out):
         if any(vals): saved.setdefault(key(r), vals + [''] * (len(HAND) - len(vals)))
     placed = [saved.pop(key(r), [''] * len(HAND)) for r in out]
     for r, h in zip(out, placed):
-        if not h[2]: h[2] = default_session(r)                  # fill a blank Session time with the default, never replace one
+        if not h[0]: h[0] = default_session(r)                  # fill a blank Session time with the default, never replace one
     return placed, saved
 
 def pad(rows, n):
@@ -82,12 +82,12 @@ def main(argv):
     problem = migrate_grid.check_grid(rows)
     if problem: sys.exit(f'FAILED: {problem}; the table sheet was not changed')
     out, blocks, notes = migrate_grid.migrate(rows)
-    current = gsheets.get_values(sess, target, 'Fixtures!A1:L', 'the current Fixtures tab')
+    current = gsheets.get_values(sess, target, 'Fixtures!A1:J', 'the current Fixtures tab')
     hand, lost = keep_hand_columns(current, out)
     fixtures = [HEAD] + out
     teams = [['Team', 'Group', 'Pitch share']] + migrate_grid.team_rows(blocks)
     sync_notes = [['Date', 'Team', 'Original text', 'What the sync did']] + [[d.isoformat(), t, a, w] for d, t, a, w in notes]
-    sync_notes += [[k[0], k[1], k[2], f'Hand-entered "{" / ".join(v)}" was on a row that is no longer in the grid, so it was not kept'] for k, v in lost.items()]
+    sync_notes += [[k[0], k[1], k[2], f'Session time "{" / ".join(v)}" was on a row that is no longer in the grid, so it was not kept'] for k, v in lost.items()]
 
     old_n = max(0, len(current) - 1)
     if old_n and len(out) < old_n * (1 - MAX_DROP):
