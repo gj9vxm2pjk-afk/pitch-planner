@@ -251,7 +251,7 @@ const SAMPLE_CSV = ",MINIS,,,,,,,,,,,,,,,,,,,,JUNIOR BOYS,,,,,,,,,,,,,,,JUNIOR G
 const TRAINING_CSV = "Day,Team,Start,End,Resource,Share,Weeks,Notes\r\nTue,U12 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U12 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U14 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U14 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U16 Girls,17:30,18:55,Grass,Half,A,Time assumed to match the U12/U14 Girls - please check\r\nTue,U16 Girls,17:30,18:55,AGP,Half,B,Time assumed to match the U12/U14 Girls - please check\r\nTue,U18 Girls,18:00,18:55,Grass,Half,A,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:00,18:55,AGP,Half,B,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:55,19:30,Paddock,Full,All,";       // copy of the training schedule sheet (set by refresh.py)
 const SENIORS_CSV = "";         // copy of the Seniors tab (senior men's fixtures with kick-off times; set by refresh.py)
 const BOOKINGS_CSV = "Date,Start,End,Resource,Team,Notes\r\n11/10/2026,18:00,19:30,Adult Scrum Machine,EXAMPLE - delete this row,Resource must be one of: Paddock / Junior Scrum Machine / Adult Scrum Machine";      // copy of the paddock & scrum machine bookings sheet (set by refresh.py)
-const SNAPSHOT_DATE = "22 Oct 21:02";   // when the embedded sheet copy was taken (set by refresh.py)
+const SNAPSHOT_DATE = "22 Oct 21:25";   // when the embedded sheet copy was taken (set by refresh.py)
 
 /* ============================ UTIL ============================ */
 const $ = s => document.querySelector(s);
@@ -334,17 +334,23 @@ function parseGrid(rows){
   return items;
 }
 /* Tidy table format: one row per fixture or session. Columns (any order, header names are case-insensitive):
-   Date, Team, Type, Opponent, Venue, Status, Competition, Changing room, Notes. */
+   Date, Team, Type, Opponent, Venue, Status, Competition, Car park duty, Notes, Session time (optional; the senior men's tab also uses Kick-off). */
 const TABLE_VENUE = {'home grass':'HG','home agp':'HA','away':'AW','hg':'HG','ha':'HA','aw':'AW'};
 const TABLE_SESSION = /^(training|pre-?season|indoors|joint training)$/i;
 function isFixtureTable(rows){
   const head = (rows[0]||[]).map(h=>String(h).trim().toLowerCase());
   return ['date','team','type','venue'].every(k=>head.includes(k));
 }
+function parseWindow(v){                                      // "09:00–10:30" (or a hyphen) typed in the Session time column
+  const m = String(v||'').match(/(\d{1,2})[:.](\d{2})\s*(?:-|–|—|to)\s*(\d{1,2})[:.](\d{2})/);
+  if (!m) return null;
+  const s = +m[1]*60 + +m[2], e = +m[3]*60 + +m[4];
+  return e > s ? {s, e} : null;
+}
 function parseFixtureTable(rows){
   const head = rows[0].map(h=>String(h).trim().toLowerCase()), ix = n => head.indexOf(n);
   const c = {date:ix('date'), team:ix('team'), type:ix('type'), opp:ix('opponent'), venue:ix('venue'), status:ix('status'),
-             comp:ix('competition'), cp:(ix('car park duty')>=0 ? ix('car park duty') : ix('changing room')), notes:ix('notes'), group:ix('group'), ko:ix('kick-off')};
+             comp:ix('competition'), cp:(ix('car park duty')>=0 ? ix('car park duty') : ix('changing room')), notes:ix('notes'), group:ix('group'), ko:ix('kick-off'), win:ix('session time')};
   const get = (r,i) => i>=0 ? String(r[i]||'').trim() : '';
   const items=[], bad=[];
   for (const [n,r] of rows.slice(1).entries()){
@@ -364,7 +370,7 @@ function parseFixtureTable(rows){
     const extra = [get(r,c.comp), get(r,c.notes)].filter(Boolean).join(' · ');
     const status = get(r,c.status).toLowerCase();
     items.push({date, team, group: c.group>=0 && get(r,c.group) ? groupKey(get(r,c.group)) : groupFromTeam(team),
-      act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind, ko: c.ko>=0 ? parseHM(get(r,c.ko)) : null,
+      act, venue, badVenue, cp: /^(y|yes|cp|true|x)$/i.test(get(r,c.cp)), extra, kind, ko: c.ko>=0 ? parseHM(get(r,c.ko)) : null, win: parseWindow(get(r,c.win)),
       surface: venue==='HG'?'grass':venue==='HA'?'agp':'',
       unconfirmed: !!status && !/^confirmed$/.test(status), mismatch:false});
   }
@@ -471,7 +477,13 @@ function koSlot(ko){                                          // a fixture with 
   if (!CONFIG.SLOTS.some(s=>s.id===id)) CONFIG.SLOTS.push({id, s: ko-CONFIG.KO_WINDOW.before, e: ko+CONFIG.KO_WINDOW.after, dyn:true});
   return id;
 }
-const slotIdFor = it => it.ko!=null ? koSlot(it.ko) : (CONFIG.SLOT_BY_TEAM[it.team] || CONFIG.SLOT_BY_GROUP[it.group] || 'c');
+function windowSlot(w){                                       // a session time from the sheet: a standard slot if it matches one, else its own window
+  const std = CONFIG.SLOTS.find(x=>!x.dyn && x.s===w.s && x.e===w.e); if (std) return std.id;
+  const id = 'w'+w.s+'-'+w.e;
+  if (!CONFIG.SLOTS.some(x=>x.id===id)) CONFIG.SLOTS.push({id, s:w.s, e:w.e, dyn:true});
+  return id;
+}
+const slotIdFor = it => it.ko!=null ? koSlot(it.ko) : it.win ? windowSlot(it.win) : (CONFIG.SLOT_BY_TEAM[it.team] || CONFIG.SLOT_BY_GROUP[it.group] || 'c');
 const slotById = id => CONFIG.SLOTS.find(s=>s.id===id);
 
 /* ============================ DATA ============================ */
@@ -679,7 +691,7 @@ function freeFits(f){
   if (f >= m.match - 0.01) return 'room for ' + [...m.teams, ...others].join(', ');
   return f >= m.session - 0.01 ? 'room for ' + [...m.teams, ...others].join(', ') + ' (training, not a match)' : '';
 }
-const itemSub = i => (i.kind==='match' ? (i.act ? 'v '+i.act : 'Opponent TBC') : (i.act || 'Session')) + (i.ko!=null ? ' · KO '+fmtT(i.ko) : '');
+const itemSub = i => (i.kind==='match' ? (i.act ? 'v '+i.act : 'Opponent TBC') : (i.act || 'Session'));
 function dayGrid(M, day){
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
   const trs = M.train.filter(t=>t.day===day && passesT(t));
@@ -769,7 +781,7 @@ function paddockList(M, day){
 function awayLine(M, day){
   const l = M.items.filter(i=>i.day===day && (i.kind==='away' || i.kind==='festival-off') && passes(i));
   if (!l.length) return '';
-  return `<h2 class="sec">Away or off site</h2><div class="card">${l.map(i=>`<div class="pad"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'')}${i.ko!=null?' · KO '+fmtT(i.ko):''}</span></div>`).join('')}</div>`;
+  return `<h2 class="sec">Away or off site</h2><div class="card">${l.map(i=>`<div class="pad"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'')}</span></div>`).join('')}</div>`;
 }
 function dayList(M, day){                                          // the same plan as a simple list, shown instead of the grid on a phone
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i)), free = freeSlotsFor(M, day), trs = M.train.filter(t=>t.day===day && passesT(t));
@@ -874,10 +886,9 @@ function msgTeamLines(i){
   const when = `⏰ ${fmtT(slot.s)}–${fmtT(slot.e)}`;
   if (i.paddock) return [`🌱 ${i.team} – Paddock${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   ${when}`];
   if (!i.surface)                                                // away or off-site
-    return [`🚌 ${i.team} – away ${isMatch ? 'v ' + (opp || '[opponent TBC]') : opp}${extra}`, `   Meet [time] at [ground] · KO [time]`];
+    return [`🚌 ${i.team} – away ${isMatch ? 'v ' + (opp || '[opponent TBC]') : opp}${extra}`, `   Meet [time] at [ground]`];
   const head = i.kind==='match' ? `🏉 ${i.team} v ${opp || '[opponent TBC]'}` : `🏉 ${i.team} – ${opp || 'session'}`;
-  const t = [i.ko!=null ? `${when} · KO ${fmtT(i.ko)}` : `${when} · KO [time]`];
-  if (isMatch) t.push('Ref [TBC]');
+  const t = [when];
   const p = [`🏟 ${posLabel(i)}${i.sharedWith.length ? ' (shared)' : ''}${i.over ? ' – to be confirmed' : ''}`];
   if (i.room !== undefined) p.push(i.room==null ? '🚪 none free – speak to me' : `🚪 Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors ${i.roomAway})` : ' (visitors: none free)') : ''}`);
   if (!i.noCp && i.cp) p.push('🅿️ car park duty');
