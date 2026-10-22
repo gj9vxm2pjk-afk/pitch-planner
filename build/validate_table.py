@@ -3,7 +3,7 @@
 
 Usage: python3 validate_table.py            (prints what it would do)
        python3 validate_table.py --apply    (does it)
-Dropdowns for Team, Type, Venue, Status and Car park duty; date and time checks; highlighting for duplicate Date + Team and
+Dropdowns for Team, Type, Venue, Status and Car park duty; date, time and session-time checks; highlighting for duplicate Date + Team and
 for Match rows with no Opponent; the header row is frozen and protected (warning only, so the sync can still write it).
 Run it once: running it again adds the highlight rules and header protection a second time (dropdowns are simply replaced). Needs the service account to be an Editor of the sheet.
 """
@@ -14,7 +14,7 @@ ROWS = 2000                                       # rules cover rows 2..ROWS
 TYPES = ['Match', 'Training', 'Pre-season', 'Indoors', 'Festival', 'Break', 'Other']
 VENUES = ['Home grass', 'Home AGP', 'Away']
 STATUSES = ['Confirmed', 'Provisional', 'Requested']
-COL = {'Date': 0, 'Team': 1, 'Type': 2, 'Opponent': 3, 'Venue': 4, 'Status': 5, 'Car park duty': 7, 'Kick-off': 9}
+COL = {'Date': 0, 'Team': 1, 'Type': 2, 'Opponent': 3, 'Venue': 4, 'Status': 5, 'Car park duty': 7, 'Kick-off': 9, 'Session time': 11}
 
 def rng(sid, col):
     return {'sheetId': sid, 'startRowIndex': 1, 'endRowIndex': ROWS, 'startColumnIndex': col, 'endColumnIndex': col + 1}
@@ -35,9 +35,10 @@ def requests(fixtures_id, teams_id):
         rule(fixtures_id, COL['Car park duty'], one_of(['Yes']), message='Yes, or leave blank'),
         rule(fixtures_id, COL['Kick-off'], {'type': 'CUSTOM_FORMULA', 'values': [{'userEnteredValue': '=OR(J2="",ISNUMBER(J2),REGEXMATCH(TO_TEXT(J2),"^\\d{1,2}[:.]\\d{2}$"))'}]}, message='A time, e.g. 10:30'),
     ]
+    r.append(rule(fixtures_id, COL['Session time'], {'type': 'CUSTOM_FORMULA', 'values': [{'userEnteredValue': '=OR(L2="",REGEXMATCH(TO_TEXT(L2),"^\\d{1,2}[:.]\\d{2}\\s*[-–]\\s*\\d{1,2}[:.]\\d{2}$"))'}]}, message='Start–end, e.g. 09:00–10:30. Clear the cell to use the default.'))
     def cf(formula, red=True):
         return {'addConditionalFormatRule': {'index': 0, 'rule': {
-            'ranges': [{'sheetId': fixtures_id, 'startRowIndex': 1, 'endRowIndex': ROWS, 'startColumnIndex': 0, 'endColumnIndex': 11}],
+            'ranges': [{'sheetId': fixtures_id, 'startRowIndex': 1, 'endRowIndex': ROWS, 'startColumnIndex': 0, 'endColumnIndex': 12}],
             'booleanRule': {'condition': {'type': 'CUSTOM_FORMULA', 'values': [{'userEnteredValue': formula}]},
                             'format': {'backgroundColor': {'red': 1, 'green': 0.85, 'blue': 0.85}}}}}}
     r += [cf('=AND($A2<>"",COUNTIFS($A$2:$A,$A2,$B$2:$B,$B2,$D$2:$D,$D2)>1)'),     # same date + team + opponent twice
@@ -54,7 +55,7 @@ def main(argv):
     ids = gsheets.sheet_ids(sess, target, 'the table sheet')
     if 'Fixtures' not in ids or 'Teams' not in ids: sys.exit(f'FAILED: the table sheet needs Fixtures and Teams tabs (found {", ".join(ids)})')
     reqs = requests(ids['Fixtures'], ids['Teams'])
-    print(f'{len(reqs)} changes: dropdowns on Team, Type, Venue, Status, Car park duty; date and time checks; 2 highlight rules; frozen, warning-protected header')
+    print(f'{len(reqs)} changes: dropdowns on Team, Type, Venue, Status, Car park duty; date, time and session-time checks; 2 highlight rules; frozen, warning-protected header')
     if '--apply' not in argv: print('Dry run. Add --apply to make the changes.'); return
     gsheets.batch_update(sess, target, reqs, 'the table sheet validation')
     print('OK: validation applied')
