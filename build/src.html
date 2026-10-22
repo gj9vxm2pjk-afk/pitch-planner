@@ -8,141 +8,171 @@
 <style>
 :root{
   /* Whitley Bay Rockcliff RFC: cardinal red, club gold, cream */
-  --bg:#f7f0e0; --surface:#ffffff; --text:#1f1416; --muted:#6b5a5c; --line:#e3d6c0;
-  --brand:#c41e3a; --brand-ink:#ffffff; --gold:#f2b705;
-  --accent:#c41e3a; --accent-ink:#ffffff; --danger:#a8141f; --warn:#8a6200; --share:#2a5fa8;
-  --hour:60px;
-  --display:'Oswald','Arial Narrow','Helvetica Neue',Impact,sans-serif;
+  --bg:#f8f5ee; --surface:#ffffff; --text:#1c1618; --muted:#6d6063; --line:#e6dfd2; --soft:#f1ece1;
+  --brand:#b81d36; --brand-ink:#ffffff; --gold:#f2b705;
+  --accent:#b81d36; --accent-ink:#ffffff; --danger:#b3202c; --warn-bg:#fff4d6; --warn-ink:#6b4b00;
+  --tint:52% 84%;                       /* saturation and lightness of the group colours */
+  --hour:56px;
+  --r:10px; --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px;
+  --display:'Oswald','Arial Narrow','Helvetica Neue',sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1a0f11; --surface:#26171a; --text:#f4ece0; --muted:#bba8aa; --line:#3d2a2d;
-    --brand:#8e1428; --brand-ink:#ffffff; --gold:#f2b705;
-    --accent:#d63a52; --accent-ink:#ffffff; --danger:#ff7a86; --warn:#f2b705; --share:#7fb0f0;
+    --bg:#17100f; --surface:#241a1a; --text:#f4ece3; --muted:#b8a9a6; --line:#3a2c2c; --soft:#2d2222;
+    --brand:#8e1428; --accent:#d63a52; --danger:#ff8a93; --warn-bg:#3a2f12; --warn-ink:#f7d98a; --tint:40% 66%;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1a0f11; --surface:#26171a; --text:#f4ece0; --muted:#bba8aa; --line:#3d2a2d;
-  --brand:#8e1428; --brand-ink:#ffffff; --gold:#f2b705;
-  --accent:#d63a52; --accent-ink:#ffffff; --danger:#ff7a86; --warn:#f2b705; --share:#7fb0f0;
+  --bg:#17100f; --surface:#241a1a; --text:#f4ece3; --muted:#b8a9a6; --line:#3a2c2c; --soft:#2d2222;
+  --brand:#8e1428; --accent:#d63a52; --danger:#ff8a93; --warn-bg:#3a2f12; --warn-ink:#f7d98a; --tint:40% 66%;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header.brand{padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--brand);color:var(--brand-ink);border-bottom:4px solid var(--gold)}
-header.brand .crest{height:46px;width:auto;flex:none;background:#fff;border-radius:8px;padding:3px}
-header.brand .names{flex:1 1 12rem;min-width:0}
-.club{font:600 .78rem/1.1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
-h1{font:600 1.45rem/1.15 var(--display);letter-spacing:.03em;text-transform:uppercase;margin:0}
-header.brand .status{color:var(--brand-ink);opacity:.85}
-.status{font-size:.8rem;color:var(--muted)}
-.banner{margin:8px 16px;padding:8px 12px;border-radius:8px;font-size:.88rem;background:color-mix(in srgb,var(--danger) 14%,var(--surface));border:1px solid var(--danger)}
-.banner.info{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border-color:var(--warn)}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 button,select,input{font:inherit;color:inherit}
-.seg button{border:0;background:none;padding:7px 12px;cursor:pointer;min-height:36px}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:36px}
-.wk{font-weight:600;min-width:11ch;text-align:center}
-.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 10px;font-size:.82rem;cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.chip.static{cursor:default}
-.chip.bad{border-color:var(--danger);color:var(--danger)}
-.chip.share{border-color:var(--share);color:var(--share)}
-main{padding:0 16px 32px}
-.dayhead{font:600 1.05rem/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:12px 0 6px}
-.strip{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;color:var(--muted);margin:0 0 8px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 var(--s4)}
+/* header: one slim line */
+header.brand{display:flex;align-items:center;gap:var(--s3);min-height:52px;padding:6px var(--s4);background:var(--brand);color:var(--brand-ink);border-bottom:3px solid var(--gold)}
+header.brand .crest{height:34px;width:auto;flex:none;background:#fff;border-radius:50%;padding:2px}
+header.brand h1{margin:0;font-size:1.02rem;font-weight:600;letter-spacing:.01em;line-height:1.2}
+header.brand .club{font:inherit;font-weight:400;opacity:.85;margin-right:6px;text-transform:none;letter-spacing:0;color:inherit}
+@media (max-width:520px){header.brand .club{display:none}header.brand .status{font-size:.72rem}}
+header.brand .status{margin-left:auto;white-space:nowrap;color:var(--brand-ink);opacity:.85;font-size:.78rem}
+.banner{margin:var(--s2) var(--s4);padding:var(--s2) var(--s3);border-radius:var(--r);font-size:.88rem;background:color-mix(in srgb,var(--danger) 12%,var(--surface));border:1px solid var(--danger)}
+.banner.info{background:var(--warn-bg);border-color:transparent;color:var(--warn-ink)}
+.banner.inmain{margin:var(--s2) 0}
+/* controls: one row, then the days */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3) var(--s4);max-width:1040px;margin:0 auto;padding:var(--s4) var(--s4) var(--s2)}
+.tabs{display:inline-flex;background:var(--soft);border-radius:999px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 18px;border-radius:999px;font-weight:600;color:var(--muted);cursor:pointer;min-height:36px}
+.tabs button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.nav{display:inline-flex;align-items:center;gap:var(--s2);font-weight:600}
+.roundbtn{border:1px solid var(--line);background:var(--surface);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1}
+.wk{min-width:11ch;text-align:center}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:6px 4px}
+.linkbtn[hidden]{display:none}
+.search{margin-left:auto}
+input[type=search]{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;min-height:36px;width:200px;max-width:100%}
+.days{display:flex;flex-wrap:wrap;gap:var(--s2);max-width:1040px;margin:0 auto;padding:0 var(--s4) var(--s3)}
+.days button{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 16px;min-height:44px;cursor:pointer;text-align:left;line-height:1.2}
+.days button small{display:block;color:var(--muted);font-size:.76rem}
+.days button[aria-pressed="true"]{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+main{max-width:1040px;margin:0 auto;padding:0 var(--s4) 32px}
+/* needs attention */
+.attn{border-radius:var(--r);background:var(--warn-bg);color:var(--warn-ink);margin:var(--s2) 0 var(--s4);overflow:hidden}
+.attn>button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--s2);width:100%;padding:11px var(--s4);cursor:pointer;font-weight:600}
+.attn>button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.attn .chev{margin-left:auto;transition:transform .15s}
+.attn[data-open="true"] .chev{transform:rotate(90deg)}
+.attn ul{margin:0;padding:0 var(--s4) var(--s3) 38px;display:none}
+.attn[data-open="true"] ul{display:block}
+.attn li{padding:3px 0}
+.okline{margin:var(--s2) 0 var(--s4);color:var(--muted);font-size:.9rem}
+/* sections */
+h2.dayhead{font-size:1.1rem;margin:var(--s5) 0 var(--s2);font-weight:700;display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s1) var(--s3)}
+h2.dayhead small{font-weight:400;color:var(--muted);font-size:.84rem}
+h2.dayhead .quiet{margin-left:auto}
+h2.sec{font-size:1.02rem;margin:var(--s5) 0 var(--s2);font-weight:700}
+.quiet{border:0;background:none;color:var(--muted);font-size:.84rem;font-weight:500;cursor:pointer;padding:6px 4px;border-radius:6px}
+.quiet[aria-pressed="true"]{color:var(--danger);font-weight:700}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:var(--s3)}
+.plan{container-type:inline-size}
+.sub{color:var(--muted);font-size:.84rem}
+.strip{margin:0 0 var(--s2);font-size:.86rem;color:var(--muted)}
 .strip b{color:var(--text)}
-.dayhead.sub{font-size:.95rem;margin-top:16px}
-.blk.tail{background:transparent;border:1px dashed var(--line);color:var(--muted);padding:0}
-.bad-text{color:var(--danger)}
-.dh{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
-.bwbar{display:flex;flex-wrap:wrap;gap:6px;font:500 .85rem system-ui,sans-serif;text-transform:none;letter-spacing:0}
-.bwbtn[aria-pressed="true"]{background:var(--danger);color:var(--surface);border-color:var(--danger)}
-.banner.inmain{margin:8px 0}
-#daySeg{flex-wrap:wrap} #daySeg button{padding:7px 10px}
-.mcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}
-.mcard header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
-.mcard h3{margin:0;font-size:.95rem}
-pre.msg{margin:0;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.mintro{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:12px 0}
-.mintro p{margin:0;font-size:.88rem;color:var(--muted);flex:1 1 20rem}
+/* pitch grid */
+.gridwrap{overflow:auto;max-height:78vh;padding-top:14px}
+.grid{display:grid;position:relative;column-gap:var(--s3)}
+.corner,.colhead{position:sticky;top:0;z-index:4;background:var(--surface);padding:0 0 var(--s2);font-weight:600;font-size:.86rem;color:var(--muted)}
+.colhead.over{color:var(--danger)}
+.times{position:relative}
+.times div{height:var(--hour);font-size:.74rem;color:var(--muted);transform:translateY(-.55em)}
+.col{position:relative;border-top:1px solid var(--line);background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% var(--hour);border-radius:6px}
+.blk{position:absolute;border-radius:7px;padding:6px 8px;overflow:hidden;color:#16190f;font-size:.82rem;line-height:1.25;border:1px solid rgba(0,0,0,.06)}
+.blk b{display:block;font-size:.86rem;overflow-wrap:anywhere}
+.blk .sub{color:inherit;opacity:.78;font-size:.8rem;overflow-wrap:anywhere}
+.blk.over{outline:2px solid var(--danger);outline-offset:-2px}
+.blk.free{background-color:transparent;background-image:repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,var(--muted) 16%,transparent) 7px 8px);border:1px solid var(--line);color:var(--muted)}
+.blk.free b{font-weight:600}
+.tag{display:inline-block;font-weight:700;font-size:.68rem;border-radius:4px;padding:0 5px;margin-bottom:2px;background:var(--danger);color:#fff}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tag{color:#2a0a0d} }
+:root[data-theme="dark"] .tag{color:#2a0a0d}
+.cp{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.18);font-size:.62rem;font-weight:700;margin-left:5px;vertical-align:1px}
+.key{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);font-size:.8rem;color:var(--muted);padding:var(--s3) 0 0}
+.key i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+/* changing rooms */
+.rooms{width:100%;border-collapse:collapse;font-size:.88rem}
+.rooms th{font-weight:600;color:var(--muted);text-align:left;padding:0 var(--s2) var(--s2);font-size:.8rem}
+.rooms td{padding:7px var(--s2);border-top:1px solid var(--line);vertical-align:top}
+.rooms td.t{color:var(--muted);white-space:nowrap;width:6rem}
+.chipx{display:inline-block;border-radius:6px;padding:2px 8px;color:#16190f;font-size:.84rem}
+.chipx.v{opacity:.66;font-style:italic}
+.none{color:var(--danger);font-weight:600}
+.empty{color:var(--muted)}
+/* paddock and away lists */
+.pad{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s3);padding:7px 0;border-top:1px solid var(--line);font-size:.9rem}
+.pad:first-child{border-top:0}
+.pad .t{color:var(--muted);width:7.4rem;flex:none}
+.pad .clash{color:var(--danger);font-weight:700}
+/* phone list (replaces the grid in a narrow container) */
+.plist{display:none}
+.slot{padding:var(--s3) 0;border-top:1px solid var(--line)}
+.slot:first-child{border-top:0;padding-top:0}
+.slot h3{margin:0 0 var(--s2);font-size:.86rem;color:var(--muted);font-weight:600}
+.li{display:flex;gap:var(--s2);align-items:center;padding:6px 0;font-size:.92rem}
+.li .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.li .where{margin-left:auto;font-size:.78rem;color:var(--muted);white-space:nowrap}
+.li.f{color:var(--muted)}
+.li .bt{color:var(--danger);font-weight:700;font-size:.78rem}
+@container (max-width:640px){
+  .gridwrap{display:none}
+  .plist{display:block}
+  .key{display:none}
+  .rooms thead{display:none}
+  .rooms, .rooms tbody{display:block}
+  .rooms tr{display:block;padding:8px 0;border-top:1px solid var(--line)}
+  .rooms tr:first-child{border-top:0;padding-top:0}
+  .rooms td{display:block;border:0;padding:2px 0}
+  .rooms td.t{width:auto;font-weight:600;color:var(--text);padding-bottom:4px}
+  .rooms td[data-room]{display:flex;gap:8px;align-items:center}
+  .rooms td[data-room]::before{content:attr(data-room);color:var(--muted);font-size:.78rem;width:3.4rem;flex:none}
+  .rooms td[data-room]:has(.empty){display:none}
+}
+/* message screen */
+.mintro{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center;justify-content:space-between;margin:var(--s3) 0}
+.mintro p{margin:0;font-size:.88rem;color:var(--muted);flex:1 1 18rem}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;cursor:pointer;min-height:40px;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-details.allmsg{margin:12px 0}
-.msgbox{display:block;width:100%;min-height:55vh;resize:vertical;margin:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-details.allmsg summary{cursor:pointer;color:var(--muted);font-size:.88rem}
-.gridwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:78vh}
-.grid{display:grid;position:relative;min-width:max-content}
-.corner,.colhead{position:sticky;top:0;z-index:4;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 6px;font-weight:600;font-size:.85rem;text-align:center}
-.colhead small{display:block;font-weight:400;color:var(--muted)}
-.colhead .halves{display:flex;margin:4px -6px -8px;border-top:1px solid var(--line)}
-.colhead .halves span{flex:1;padding:2px 0}
-.colhead .halves span+span{border-left:1px solid var(--line)}
-.col.halved{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,transparent calc(50% - .5px),var(--line) calc(50% - .5px),var(--line) calc(50% + .5px),transparent calc(50% + .5px));background-size:100% var(--hour),100% 100%}
-.corner{left:0;z-index:5}
-.times{position:sticky;left:0;z-index:3;background:var(--surface);border-right:1px solid var(--line)}
-.times div{height:var(--hour);font-size:.74rem;color:var(--muted);padding:2px 6px;border-top:1px solid var(--line)}
-.col{position:relative;border-left:1px solid var(--line);
-  background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% var(--hour)}
-.blk{position:absolute;border-radius:6px;padding:3px 5px;font-size:.76rem;line-height:1.25;overflow:hidden;
-  color:#101410;border:1px solid rgba(0,0,0,.25)}
-.blk b{display:block;overflow-wrap:anywhere}
-.blk .sub{opacity:.85;overflow-wrap:anywhere}
-.blk.visitor{opacity:.78;border-style:dashed;border-color:var(--muted)}
-.blk.free{background:var(--surface);border:2px dashed var(--muted);color:var(--muted)}
-.freekey{margin:6px 2px 0;display:flex;align-items:center;gap:6px}
-.freekey .swatch{display:inline-block;width:18px;height:12px;border:2px dashed var(--muted);border-radius:3px}
-.blk.shared{border-style:dashed;border-width:2px;border-color:var(--share)}
-.blk.over{outline:3px solid var(--danger);outline-offset:-1px;background-image:repeating-linear-gradient(45deg,rgba(192,38,45,.2) 0 6px,transparent 6px 12px)}
-.tag{display:inline-block;font-weight:700;font-size:.68rem;border-radius:4px;padding:0 4px;margin-right:3px;background:rgba(255,255,255,.7);color:#10161a}
-.tag.sh{color:#1b4a8c} .tag.ov{color:#a01b22}
-.agenda .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin:0 0 10px;overflow:hidden}
-.agenda .card h3{margin:0;padding:8px 12px;font:600 1rem/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line)}
-.agenda h4{margin:0;padding:6px 12px;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:color-mix(in srgb,var(--muted) 8%,var(--surface))}
-.row{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
-.row:last-child{border-bottom:0}
-.row.dim{color:var(--muted)}
-.row .t{color:var(--muted);font-size:.9rem}
-.pill{display:inline-block;border-radius:99px;padding:0 8px;font-size:.74rem;margin-left:6px;border:1px solid currentColor;white-space:nowrap}
-.pill.bad{color:var(--danger)} .pill.warn{color:var(--warn)} .pill.sh{color:var(--share)} .pill.cp{color:var(--accent)}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:12px 0}
-.panel h2{font-size:.95rem;margin:0 0 6px}
-.panel ul{margin:0;padding-left:18px}
-.panel p{margin:8px 0 0;font-size:.82rem;color:var(--muted)}
-.ok{color:var(--accent)}
-input[type=search]{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-height:36px;width:180px;max-width:100%}
+.msgbox{display:block;width:100%;min-height:55vh;resize:vertical;margin:0;padding:var(--s3);border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--text);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.bad-text{color:var(--danger)}
 body.tv{font-size:20px;--hour:84px}
-body.tv header.brand .crest{height:64px}
-body.tv .bar>*{display:none}
-body.tv .bar #copyBar{display:none}
-@media (max-width:700px){ .wk{min-width:9ch} .row{grid-template-columns:1fr} }
+body.tv header.brand .crest{height:46px}
+body.tv .bar, body.tv .days{display:none}
+@media (max-width:700px){ .wk{min-width:9ch} .search{margin-left:0;width:100%} input[type=search]{width:100%} }
 </style>
 </head>
 <body>
 <header class="brand">
   <img class="crest" src="__CREST__" alt="Whitley Bay Rockcliff RFC crest">
-  <div class="names"><div class="club">Whitley Bay Rockcliff RFC</div><h1>Pitch Planner</h1></div>
+  <h1><span class="club">Whitley Bay Rockcliff RFC</span>Pitch Planner</h1>
   <span class="status" id="status" role="status"></span>
 </header>
 <div id="banners"></div>
 <div class="bar" id="bar">
-  <div class="seg" id="viewSeg" role="group" aria-label="View">
-    <button data-v="day">Pitches</button><button data-v="weekend">Week</button><button data-v="agenda">Agenda</button><button data-v="message">Message</button>
+  <div class="tabs" id="viewSeg" role="group" aria-label="Screen">
+    <button data-v="day">Plan</button><button data-v="message">Message</button>
   </div>
-  <div class="seg" id="daySeg" role="group" aria-label="Day">
-    <button data-d="mon">Mon</button><button data-d="tue">Tue</button><button data-d="wed">Wed</button><button data-d="thu">Thu</button><button data-d="fri">Fri</button><button data-d="sat">Sat</button><button data-d="sun">Sun</button>
+  <div class="nav">
+    <button class="roundbtn" id="prev" aria-label="Previous week">&larr;</button>
+    <span class="wk" id="wk"></span>
+    <button class="roundbtn" id="next" aria-label="Next week">&rarr;</button>
+    <button class="linkbtn" id="today" hidden>This week</button>
   </div>
-  <button class="btn" id="prev" aria-label="Previous week">&larr;</button>
-  <span class="wk" id="wk"></span>
-  <button class="btn" id="next" aria-label="Next week">&rarr;</button>
-  <button class="btn" id="today">This week</button>
-  <button class="btn primary" id="copyBar">Copy message</button>
-  <input type="search" id="q" placeholder="Search team…" aria-label="Search team">
+  <div class="search"><input type="search" id="q" placeholder="Find a team" aria-label="Find a team"></div>
 </div>
-<div class="chips" id="chips"></div>
+<div class="days" id="daySeg" role="group" aria-label="Day"></div>
 <main id="main"></main>
 
 <script>
@@ -252,8 +282,8 @@ function dayKeyFor(date, sat){
 function fracLabel(f){ return f>=0.99 ? 'Full pitch' : Math.abs(f-1/2)<.01 ? '1/2 pitch' : Math.abs(f-1/3)<.01 ? '1/3 pitch' : Math.round(f*100)+'%'; }
 function groupKey(g){ const u=String(g||'').toUpperCase(); return u.includes('MINI')?'MINIS':u.includes('BOYS')?'JUNIOR BOYS':u.includes('GIRLS')?'JUNIOR GIRLS':u.includes('WOMEN')?'WOMEN':(/\bMEN|SENIOR/.test(u)?'MEN':'WOMEN'); }
 const GROUP_LABEL = {MINIS:'Minis','JUNIOR BOYS':'Junior boys','JUNIOR GIRLS':'Junior girls',WOMEN:'Women',MEN:'Senior men'};
-const GROUP_HUE = {MINIS:95,'JUNIOR BOYS':200,'JUNIOR GIRLS':325,WOMEN:35,MEN:262,RES:48};
-const colourFor = g => `hsl(${GROUP_HUE[g]??150} 62% 78%)`;
+const GROUP_HUE = {MINIS:92,'JUNIOR BOYS':205,'JUNIOR GIRLS':330,WOMEN:38,MEN:262,RES:48};
+const colourFor = g => `hsl(${GROUP_HUE[g]??150} var(--tint))`;
 function cleanTeam(t){ return t.replace(/\s+/g,' ').trim().replace(/^(U\d+)s$/i,'$1'); }
 
 /* ============================ SHEET PARSING ============================ */
@@ -593,7 +623,7 @@ function modelFor(sat){
 }
 
 /* ============================ STATE ============================ */
-const S = { view:'day', day:'sun', sat:upcomingSaturday(), surf:new Set(), grp:new Set(), bw:new Set(), q:'', viewSet:false, dayPicked:false };
+const S = { view:'day', day:'sun', sat:upcomingSaturday(), surf:new Set(), grp:new Set(), bw:new Set(), q:'', viewSet:false, dayPicked:false, attnOpen:false };
 const compact = () => matchMedia('(max-width:700px)').matches;
 const dayHasContent = (M,d) => M.items.some(i=>i.day===d && (i.surface || i.kind!=='training')) || M.train.some(t=>t.day===d) || M.resBookings.some(b=>b.day===d && !b.bad);
 function autoDay(){
@@ -609,7 +639,7 @@ function readHash(){
   const p = new URLSearchParams(location.hash.replace(/^#/,''));
   if (p.has('tv')) document.body.classList.add('tv'); else document.body.classList.remove('tv');
   S.bw = new Set((p.get('bw')||'').split(',').filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)));
-  if (!S.viewSet) S.view = compact() ? 'agenda' : 'day';
+  if (!S.viewSet) S.view = 'day';
 }
 function writeHash(){
   const parts = [];
@@ -625,15 +655,6 @@ const passes = i => (S.surf.size===0 || (i.surface && S.surf.has(i.surface))) &&
 /* ============================ RENDER ============================ */
 const sizeLabel = i => (i.frac >= 0.99 && i.eff < 0.99) ? 'Half of pitch' : fracLabel(i.frac);
 const posLabel = i => i.cols.length>1 ? `${SURF[i.surface]} 1 + 2` : `${SURF[i.surface]} ${i.cols[0]+1}`;
-function badges(i){
-  let h='';
-  if (i.sharedWith && i.sharedWith.length) h+=`<span class="pill sh">Shared pitch</span>`;
-  if (i.over) h+=`<span class="pill bad">Over capacity</span>`;
-  if (i.roomClash) h+=`<span class="pill bad">No room free</span>`;
-  if (i.cp) h+=`<span class="pill cp">Car park</span>`;
-  if (i.unconfirmed) h+=`<span class="pill warn">Unconfirmed</span>`;
-  return h;
-}
 const BW_NOTE = 'Bad weather: grass is not available and the AGP is split into 4 sections, so teams share space. Sessions on the grass need to move, please check with the coordinator.';
 /* free pitch space: which weekend slots to draw as "space available" on the day grid */
 function freeSlotsFor(M, day){
@@ -651,11 +672,11 @@ function freeFits(f){
   if (f >= m.match - 0.01) return 'room for ' + [...m.teams, ...others].join(', ');
   return f >= m.session - 0.01 ? 'room for ' + [...m.teams, ...others].join(', ') + ' (training, not a match)' : '';
 }
-const freeKey = (M, day) => freeSlotsFor(M, day).length ? `<p class="sub freekey"><span class="swatch"></span> Dashed box = space available in that time slot. A team of that size could use it.</p>` : '';
+const itemSub = i => (i.kind==='match' ? (i.act ? 'v '+i.act : 'Opponent TBC') : (i.act || 'Session')) + (i.ko!=null ? ' · KO '+fmtT(i.ko) : '');
 function dayGrid(M, day){
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
   const trs = M.train.filter(t=>t.day===day && passesT(t));
-  if (!items.length && !trs.length) return `<div class="panel">No pitch sessions ${S.surf.size||S.grp.size||S.q ? 'match the current filters' : 'on this day'}.</div>`;
+  if (!items.length && !trs.length) return '';
   const freeSl = freeSlotsFor(M, day);
   const times = [...items.flatMap(i=>[slotById(i.slot).s, slotById(i.slot).e]), ...trs.flatMap(t=>[t.ts,t.te]), ...(freeSl.length ? CONFIG.SLOTS.filter(x=>!x.dyn).flatMap(s=>[s.s,s.e]) : [])];
   const t0 = Math.floor(Math.min(...times)/60)*60, t1 = Math.ceil(Math.max(...times)/60)*60;
@@ -664,29 +685,29 @@ function dayGrid(M, day){
     if (S.surf.size && !S.surf.has(surf)) continue;
     const here = items.filter(i=>i.surface===surf), tHere = trs.filter(t=>t.surface===surf);
     const lanes = Math.max(1, ...CONFIG.SLOTS.flatMap(s=>[0,1].map(c=>here.filter(i=>i.slot===s.id && i.cols.length===1 && i.cols[0]===c).length)));
-    cols.push({surf, items:here, trs:tHere, w:Math.max(280, lanes*2*96)});
+    cols.push({surf, items:here, trs:tHere, w:Math.max(260, lanes*2*84)});
   }
   const hpx = parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60;
   const hours = Math.max(1, Math.ceil((t1-t0)/60)), bw = bwOn(day);
-  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(c=>`minmax(${c.w}px,1fr)`).join(' ')}">`;
-  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead ${bw&&c.surf==='grass'?'over':''}">${SURF[c.surf]} pitch${bw?(c.surf==='grass'?' · not available':' · 4 sections'):''}<small class="halves"><span>${SURF[c.surf]} 1</span><span>${SURF[c.surf]} 2</span></small></div>`).join('');
+  let h = `<div class="grid" style="grid-template-columns:44px ${cols.map(c=>`minmax(${c.w}px,1fr)`).join(' ')}">`;
+  h += `<div class="corner"></div>` + cols.map(c=>`<div class="colhead ${bw&&c.surf==='grass'?'over':''}">${SURF[c.surf]}${bw?(c.surf==='grass'?' · not available':' · split in 4'):''}</div>`).join('');
   h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
   for (const c of cols){
-    h += `<div class="col halved" style="height:${hours*hpx}px">`;
+    h += `<div class="col" style="height:${hours*hpx}px">`;
     for (const s of CONFIG.SLOTS){
       const inSlot = c.items.filter(i=>i.slot===s.id);
       const place = (i, left, width, pos=posLabel(i)) => {
         const sh = i.sharedWith.length>0;
-        return `<div class="blk ${sh?'shared':''} ${i.over?'over':''}" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(i.group)}"
-          title="${esc(i.team)} · ${esc(i.act||'Opponent TBC')} · ${sizeLabel(i)} · ${pos}${sh?' · shares with '+i.sharedWith.map(o=>esc(o.team)).join(', '):''}">
-          <b>${sh?'<span class="tag sh">SHARED</span>':''}${i.over?'<span class="tag ov">OVER</span>':''}${esc(i.team)}</b>
-          <span class="sub">${esc(i.act||'Opponent TBC')}</span><br><span class="sub">${pos}${i.cp?' · <span class="tag">CP</span>':''}</span></div>`;
+        return `<div class="blk ${i.over?'over':''}" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(i.group)}"
+          title="${esc(i.team)} · ${esc(itemSub(i))} · ${sizeLabel(i)} · ${pos}${sh?' · shares with '+i.sharedWith.map(o=>esc(o.team)).join(', '):''}">
+          ${i.over?'<span class="tag">Over capacity</span>':''}<b>${esc(i.team)}${i.cp?'<span class="cp" title="Car park duty">P</span>':''}</b>
+          <span class="sub">${esc(itemSub(i))}</span></div>`;
       };
       const fr = freeSl.find(f=>f.surface===c.surf && f.slot===s.id);
       const freeBlk = (left, width, third) => {
         const lab = freeLabel(fr.free), fits = freeFits(fr.free), split = centred || centred2;
         return `<div class="blk free" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px)"
-          title="Space available: ${lab}${fits?' · '+esc(fits):''}${split?' · split equally between the two halves':''}"><b>Free · ${third?'1/3 pitch':lab}</b><span class="sub">${third?'2/3 free in total · ':''}${esc(fits)}</span></div>`;
+          title="Space available: ${lab}${third?' (2/3 free in total)':''}${fits?' · '+esc(fits):''}${split?' · split equally between the two halves':''}"><b>Free · ${third?'1/3':lab.replace(' pitch','')}</b></div>`;
       };
       // a free third with a team on each half is drawn as one block across the middle, split equally between the halves:
       // team | free third | team, each a third of the pitch wide
@@ -710,173 +731,130 @@ function dayGrid(M, day){
     for (const t of c.trs){                                           // weekly training sessions
       const full = t.cols.length>1, left = t.over ? 50 : (full ? 0 : t.cols[0]*50), width = (full && !t.over) ? 100 : 50;
       const wet = bw && t.surface==='grass';
-      h += `<div class="blk ${t.sharedWith.length?'shared':''} ${t.over||wet?'over':''}" style="top:${(t.ts-t0)/60*hpx+1}px;height:${Math.max((t.te-t.ts)/60*hpx-3,22)}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(t.group)}"
+      h += `<div class="blk ${t.over||wet?'over':''}" style="top:${(t.ts-t0)/60*hpx+1}px;height:${Math.max((t.te-t.ts)/60*hpx-3,22)}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(t.group)}"
         title="${esc(t.team)} training ${fmtT(t.ts)}–${fmtT(t.te)} · ${SURF[t.surface]}${t.sharedWith.length?' · shares with '+t.sharedWith.map(o=>esc(o.team)).join(', '):''}">
-        <b>${t.over?'<span class="tag ov">OVER</span>':''}${wet?'<span class="tag ov">WET</span>':''}${esc(t.team)}</b><span class="sub">Training ${fmtT(t.ts)}–${fmtT(t.te)}</span><br><span class="sub">${full?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}</span></div>`;
+        ${t.over?'<span class="tag">No space</span>':''}${wet?'<span class="tag">Grass not available</span>':''}<b>${esc(t.team)}</b><span class="sub">Training ${fmtT(t.ts)}–${fmtT(t.te)}</span></div>`;
     }
     h += `</div>`;
   }
   return h + `</div>`;
 }
-function resourceGrid(M, day){
-  const list = M.resBookings.filter(b=>b.day===day && !b.bad && (!S.q || (b.team+' '+b.notes).toLowerCase().includes(S.q.toLowerCase())));
-  if (!list.length) return '';
-  const hpx = (parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60) * 1.2;
-  const t0 = Math.floor(Math.min(...list.map(b=>b.start))/60)*60, t1 = Math.ceil(Math.max(...list.map(b=>b.end))/60)*60, hours = Math.max(1,(t1-t0)/60);
-  const cols = CONFIG.RESOURCES.map(n=>({n, list:list.filter(b=>b.resource===n)}));
-  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(()=>'minmax(150px,1fr)').join(' ')}">`;
-  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead">${esc(c.n)}</div>`).join('');
-  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
-  for (const c of cols){
-    h += `<div class="col" style="height:${hours*hpx}px">`;
-    c.list.forEach(b=>{
-      const peers = c.list.filter(o=>o.start < b.end && b.start < o.end), k = peers.indexOf(b), w = 100/peers.length;
-      h += `<div class="blk ${b.clash?'over':''}" style="top:${(b.start-t0)/60*hpx+1}px;height:${Math.max((b.end-b.start)/60*hpx-3,22)}px;left:calc(${k*w}% + 2px);width:calc(${w}% - 4px);background:${colourFor('RES')}"
-        title="${esc(b.team)} · ${fmtT(b.start)}–${fmtT(b.end)}${b.notes?' · '+esc(b.notes):''}"><b>${b.clash?'<span class="tag ov">CLASH</span>':''}${esc(b.team||'Booked')}</b><span class="sub">${fmtT(b.start)}–${fmtT(b.end)}${b.notes?' · '+esc(b.notes):''}</span></div>`;
-    });
-    h += `</div>`;
-  }
-  h += `</div>`;
-  return `<div class="dayhead sub">Paddock &amp; scrum machines</div><div class="gridwrap">${h}</div>`;
-}
-function roomGrid(M, day){
+const trim = n => n.toFixed(2).replace(/\.?0+$/,'');
+function roomTable(M, day){
   const reqs = M.roomReqs.filter(r=>r.day===day && passes(r.item));
   if (!reqs.length) return '';
-  const hpx = (parseFloat(getComputedStyle(document.body).getPropertyValue('--hour')) || 60) * 1.7;   // taller rows: change windows are short
-  const t0 = Math.floor(Math.min(...reqs.map(r=>r.start))/60)*60, t1 = Math.ceil(Math.max(...reqs.map(r=>r.block))/60)*60;
-  const hours = (t1-t0)/60;
-  const nums = [...CONFIG.ROOMS.senior.map(n=>({n,side:'senior'})), ...CONFIG.ROOMS.junior.map(n=>({n,side:'junior'}))].sort((a,b)=>a.n-b.n);
-  const clash = reqs.filter(r=>r.room==null);
-  const cols = nums.map(c=>({...c, list:reqs.filter(r=>r.room===c.n)}));
-  if (clash.length) cols.push({n:0, side:'none', list:clash});
-  const blk = (r, c) => {
-    const top = (r.start-t0)/60*hpx+1, h1 = (r.end-r.start)/60*hpx-2, h2 = (r.block-r.end)/60*hpx;
-    const bad = c.side==='none';
-    const who = r.visitor ? `${r.label} (visitors)` : r.label, sub = r.visitor ? `v ${r.home} · ${fmtT(r.start)}–${fmtT(r.end)}` : `${fmtT(r.start)}–${fmtT(r.end)}`;
-    return `<div class="blk ${bad?'over':''} ${r.visitor?'visitor':''}" style="top:${top}px;height:${Math.max(h1,20)}px;left:2px;width:calc(100% - 4px);background:${colourFor(r.item.group)}"
-        title="${esc(who)}${r.visitor?' v '+esc(r.home):''} · change ${fmtT(r.start)}–${fmtT(r.end)}${bad?' · no room free':''}"><b>${bad?'<span class="tag ov">NO ROOM</span>':''}${esc(who)}</b><span class="sub">${esc(sub)}</span></div>` +
-      `<div class="blk tail" style="top:${top+Math.max(h1,20)+2}px;height:${Math.max(h2-2,6)}px;left:2px;width:calc(100% - 4px)" title="Turnaround until ${fmtT(r.block)}"></div>`;
-  };
-  let h = `<div class="grid" style="grid-template-columns:52px ${cols.map(()=>'minmax(120px,1fr)').join(' ')}">`;
-  h += `<div class="corner">Time</div>` + cols.map(c=>`<div class="colhead ${c.side==='none'?'over':''}">${c.side==='none'?'No room free':'Room '+c.n}<small>${c.side==='none'?'Needs a room':'&nbsp;'}</small></div>`).join('');
-  h += `<div class="times">` + Array.from({length:hours},(_,i)=>`<div>${fmtT(t0+i*60)}</div>`).join('') + `</div>`;
-  for (const c of cols) h += `<div class="col" style="height:${hours*hpx}px">${c.list.map(r=>blk(r,c)).join('')}</div>`;
-  h += `</div>`;
-  return `<div class="dayhead sub">Changing rooms</div><div class="gridwrap">${h}</div>`;
+  const nums = [...CONFIG.ROOMS.senior, ...CONFIG.ROOMS.junior].sort((a,b)=>a-b);
+  const times = [...new Set(reqs.map(r=>r.start))].sort((a,b)=>a-b);
+  const rows = times.map(t=>{
+    const at = reqs.filter(r=>r.start===t), end = at[0].end;
+    const cell = n => { const r = at.find(x=>x.room===n);
+      return `<td data-room="Room ${n}">${r ? `<span class="chipx ${r.visitor?'v':''}" style="background:${colourFor(r.item.group)}" title="${esc(r.visitor ? r.label+' (visitors) v '+r.home : r.label)}">${esc(r.visitor ? r.label+' (visitors)' : r.label)}</span>` : '<span class="empty">–</span>'}</td>`; };
+    const none = at.filter(r=>r.room==null);
+    return `<tr><td class="t">${fmtT(t)}–${fmtT(end)}</td>${nums.map(cell).join('')}</tr>` + (none.length ? `<tr><td></td><td colspan="${nums.length}" class="none">No room free: ${none.map(r=>esc(r.label)).join(', ')}</td></tr>` : '');
+  }).join('');
+  return `<h2 class="sec">Changing rooms</h2><div class="card"><table class="rooms"><thead><tr><th></th>${nums.map(n=>`<th>Room ${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-function dayStrip(M, day){
-  const home = M.items.filter(i=>i.day===day && i.surface), cp = M.cp(day);
-  const sh = M.shared.filter(s=>s.day===day);
-  const nt = M.train.filter(t=>t.day===day).length;
-  return `<div class="strip">${home.length?`<span><b>${home.length}</b> home sessions</span>`:''}${nt?`<span><b>${nt}</b> training session${nt===1?'':'s'}</span>`:''}${sh.length?`<span><b>${sh.length}</b> shared pitch${sh.length===1?'':'es'}</span>`:''}` +
-    (cp.length?`<span>Car park marshals: <b>${cp.map(i=>esc(i.team)).join(', ')}</b></span>`:'') + `</div>`;
+function paddockList(M, day){
+  const list = M.resBookings.filter(b=>b.day===day && !b.bad && (!S.q || (b.team+' '+b.notes).toLowerCase().includes(S.q.toLowerCase()))).sort((a,b)=>a.start-b.start || a.resource.localeCompare(b.resource));
+  if (!list.length) return '';
+  return `<h2 class="sec">Paddock &amp; scrum machines</h2><div class="card">${list.map(b=>`<div class="pad"><span class="t">${fmtT(b.start)}–${fmtT(b.end)}</span><span><b>${esc(b.team||'Booked')}</b> · ${esc(b.resource)}${b.notes?' · '+esc(b.notes):''}${b.clash?' <span class="clash">· Clash</span>':''}</span></div>`).join('')}</div>`;
+}
+function awayLine(M, day){
+  const l = M.items.filter(i=>i.day===day && (i.kind==='away' || i.kind==='festival-off') && passes(i));
+  if (!l.length) return '';
+  return `<h2 class="sec">Away or off site</h2><div class="card">${l.map(i=>`<div class="pad"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'')}${i.ko!=null?' · KO '+fmtT(i.ko):''}</span></div>`).join('')}</div>`;
+}
+function dayList(M, day){                                          // the same plan as a simple list, shown instead of the grid on a phone
+  const items = M.items.filter(i=>i.day===day && i.surface && passes(i)), free = freeSlotsFor(M, day), trs = M.train.filter(t=>t.day===day && passesT(t));
+  let h = '';
+  const slots = CONFIG.SLOTS.filter(s=>items.some(i=>i.slot===s.id) || free.some(f=>f.slot===s.id)).sort((a,b)=>a.s-b.s);
+  for (const s of slots){
+    const rows = items.filter(i=>i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface) || a.cols[0]-b.cols[0]).map(i=>`<div class="li"><span class="dot" style="background:${colourFor(i.group)}"></span><span>${esc(i.team)} · ${esc(itemSub(i))}${i.cp?'<span class="cp" title="Car park duty">P</span>':''}${i.over?' <span class="bt">· Over capacity</span>':''}${i.roomClash?' <span class="bt">· No changing room</span>':''}</span><span class="where">${SURF[i.surface]}</span></div>`).join('');
+    const fr = free.filter(f=>f.slot===s.id).map(f=>`<div class="li f"><span class="dot" style="border:1.5px dashed var(--muted)"></span><span>Free: ${freeLabel(f.free)}</span><span class="where">${SURF[f.surface]}</span></div>`).join('');
+    h += `<div class="slot"><h3>${fmtT(s.s)}–${fmtT(s.e)}</h3>${rows}${fr}</div>`;
+  }
+  if (trs.length) h += `<div class="slot"><h3>Training</h3>${trs.sort((a,b)=>a.ts-b.ts).map(t=>`<div class="li"><span class="dot" style="background:${colourFor(t.group)}"></span><span>${esc(t.team)} · ${fmtT(t.ts)}–${fmtT(t.te)}${t.over?' <span class="bt">· No space</span>':''}</span><span class="where">${SURF[t.surface]}</span></div>`).join('')}</div>`;
+  return h;
+}
+function dayKey(M, day){
+  const items = M.items.filter(i=>i.day===day && i.surface && passes(i)), trs = M.train.filter(t=>t.day===day && passesT(t));
+  const groups = GROUP_ORDER.filter(g=>items.some(i=>i.group===g) || trs.some(t=>t.group===g));
+  const bits = groups.map(g=>`<span><i style="background:${colourFor(g)}"></i>${GROUP_LABEL[g]}</span>`);
+  if (freeSlotsFor(M, day).length) bits.push(`<span><i style="border:1px solid var(--line);background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 4px)"></i>Free space</span>`);
+  if (items.some(i=>i.over) || trs.some(t=>t.over)) bits.push(`<span><i style="outline:2px solid var(--danger);outline-offset:-2px"></i>Problem</span>`);
+  return bits.length ? `<div class="key">${bits.join('')}</div>` : '';
 }
 function weekRange(){
   const f = addDays(S.sat,-5), u = addDays(S.sat,1), mo = d => d.toLocaleString('en-GB',{month:'short'});
   return f.getMonth()===u.getMonth() ? `${f.getDate()}–${u.getDate()} ${mo(u)}` : `${f.getDate()} ${mo(f)}–${u.getDate()} ${mo(u)}`;
 }
-function bwButtons(d){
+function bwButton(d){
   const on = bwOn(d);
-  return `<span class="bwbar"><button class="btn bwbtn" data-bw="${d}" aria-pressed="${on}">${on?'Bad weather: on':'Bad weather'}</button>${on?'<button class="btn" data-bwlink="1">Copy link</button>':''}</span>`;
+  return `<button class="quiet" data-bw="${d}" aria-pressed="${on}">${on?'Bad weather: on':'Bad weather'}</button>${on?'<button class="quiet" data-bwlink="1">Copy link</button>':''}`;
 }
-const dayHead = d => `<div class="dayhead dh"><span>${dayTitle(d)}</span>${bwButtons(d)}</div>${bwOn(d)?`<div class="banner inmain">${BW_NOTE}</div>`:''}`;
+const dayLabel = day => `${DAY_NAME[day].slice(0,3)} ${addDays(S.sat,DAY_OFF[day]).getDate()}`;
+const dayLong = day => { const d = addDays(S.sat,DAY_OFF[day]); return `${DAY_NAME[day]} ${d.getDate()} ${d.toLocaleString('en-GB',{month:'short'})}`; };
+function daySummary(M, day){
+  const home = M.items.filter(i=>i.day===day && i.surface).length, tr = M.train.filter(t=>t.day===day).length, bk = M.resBookings.filter(b=>b.day===day && !b.bad).length;
+  return [home && `${home} at the club`, tr && `${tr} training`, !home && !tr && bk && `${bk} booking${bk===1?'':'s'}`].filter(Boolean).join(' · ');
+}
+function dayHead(M, d){
+  const cp = M.cp(d);
+  return `<h2 class="dayhead">${dayLong(d)}<small>${daySummary(M,d)}</small><span class="quiet-wrap" style="margin-left:auto">${bwButton(d)}</span></h2>${bwOn(d)?`<div class="banner inmain">${BW_NOTE}</div>`:''}` +
+    (cp.length ? `<p class="strip">Car park marshals: <b>${cp.map(i=>esc(i.team)).join(', ')}</b></p>` : '');
+}
 function weekendRange(){
   const f = addDays(S.sat,-1), u = addDays(S.sat,1), mo = d => d.toLocaleString('en-GB',{month:'short'});
   return f.getMonth()===u.getMonth() ? `${f.getDate()}–${u.getDate()} ${mo(u)}` : `${f.getDate()} ${mo(f)}–${u.getDate()} ${mo(u)}`;
 }
 function dayTitle(day){ const d=addDays(S.sat,DAY_OFF[day]); return `${DAY_NAME[day]} ${d.getDate()}/${d.getMonth()+1}`; }
-function roomLine(i){
-  if (i.room===undefined) return '';
-  const when = `${fmtT(slotById(i.slot).e)}–${fmtT(slotById(i.slot).e+CONFIG.ROOM_CHANGE_MIN)}`;
-  const vis = (i.room!=null && i.kind==='match') ? (i.roomAway!=null ? `, visitors in Room ${i.roomAway}` : ', <b class="bad-text">no room free for the visitors</b>') : '';
-  return `<br><small class="status">Changing after the match (${when}): ${i.room==null ? '<b class="bad-text">no room free</b>' : 'Room '+i.room+vis}</small>`;
+function attentionItems(M){
+  const L = [], dn = d => DAY_NAME[d].slice(0,3);
+  const grp = {};
+  M.over.forEach(i => (grp[i.day+'|'+i.surface+'|'+i.slot] ||= []).push(i));
+  for (const k in grp){ const l = grp[k], i = l[0]; L.push(`<b>${dn(i.day)} ${fmtT(slotById(i.slot).s)}</b> · ${SURF[i.surface]} needs ${trim(i.groupTotal)} pitches but has 1 (${l.map(x=>esc(x.team)).join(', ')})`); }
+  M.roomClashes.forEach(r => L.push(`<b>${dn(r.day)} ${fmtT(r.start)}</b> · no changing room free for ${esc(r.item.team)}`));
+  M.visitorGaps.forEach(i => L.push(`<b>${dn(i.day)} ${fmtT(slotById(i.slot).e)}</b> · no changing room for the visitors of ${esc(i.team)}`));
+  M.pitchOverlaps.forEach(o => L.push(`<b>${dn(o.a.day)}</b> · ${SURF[o.a.surface]} pitch: ${esc(o.a.team)} (${fmtT(slotById(o.a.slot).s)}–${fmtT(slotById(o.a.slot).e)}) overlaps ${esc(o.b.team)} (${fmtT(slotById(o.b.slot).s)}–${fmtT(slotById(o.b.slot).e)})`));
+  M.resClashes.filter(b=>b.reserved || b.clashOther).forEach(b => L.push(`<b>${dn(b.day)} ${fmtT(b.start)}</b> · ${esc(b.resource)}: ` + (b.reserved ? `${esc(b.team)} always uses it, but ${b.clashWith.map(esc).join(', ')} has it booked` : b.clashReserved ? `${esc(b.team||'a booking')} clashes with the ${esc(b.reservedFor)} reservation` : `${esc(b.team||'a booking')} overlaps another booking`)));
+  M.trainOver.forEach(t => L.push(`<b>${dn(t.day)} ${fmtT(t.ts)}</b> · ${esc(t.team)} has no space on the ${SURF[t.surface]} for training`));
+  M.badBookings.forEach(b => L.push(`Bookings sheet: ${esc(b.team||'a row')} ${b.resource ? 'has a missing or invalid time' : `has resource "${esc(b.rawRes)}" (expected ${CONFIG.RESOURCES.map(esc).join(', ')})`}`));
+  M.badTrain.forEach(t => L.push(`Training sheet: ${esc(t.team||'a row')} ${t.day ? '' : '(day not recognised) '}${!t.res ? `has resource "${esc(t.rawRes)}"` : 'has a missing or invalid time'}`));
+  M.mismatch.forEach(i => L.push(`<b>${dn(i.day)}</b> · ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue==='AW'?'away':'home'}, but the name suggests ${i.venue==='AW'?'home':'away'}`));
+  M.badVenue.forEach(i => L.push(`<b>${dn(i.day)}</b> · ${esc(i.team)} "${esc(i.act)}" has an unknown venue "${esc(i.badVenue)}"`));
+  if (M.unconfirmed.length) L.push(`${M.unconfirmed.length} unconfirmed: ${M.unconfirmed.slice(0,6).map(i=>`${esc(i.team)}${i.act?' ('+esc(i.act)+')':''}`).join(', ')}${M.unconfirmed.length>6?' and more':''}`);
+  return L;
 }
-function agendaDay(M, day){
-  const all = M.items.filter(i=>i.day===day && passes(i));
-  const row = (i, dim) => `<div class="row ${dim?'dim':''}"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'Opponent TBC')}${i.extra?` <small class="status">(${esc(i.extra)})</small>`:''}
-    ${i.surface?` · ${posLabel(i)} · ${sizeLabel(i)}`:''}${i.paddock?` · Paddock ${fmtT(slotById(i.slot).s)}–${fmtT(slotById(i.slot).e)}`:''}${badges(i)}
-    ${i.sharedWith&&i.sharedWith.length?`<br><small class="status">Sharing with ${i.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}
-    ${roomLine(i)}</span></div>`;
-  let h = '';
-  for (const s of CONFIG.SLOTS){
-    const list = all.filter(i=>i.surface && i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface)||a.cols[0]-b.cols[0]);
-    if (list.length) h += `<h4>${fmtT(s.s)}–${fmtT(s.e)} · at the club</h4>` + list.map(i=>row(i)).join('');
-  }
-  const away = all.filter(i=>i.kind==='away' || i.kind==='festival-off');
-  if (away.length) h += `<h4>Away or off site</h4>` + away.map(i=>row(i)).join('');
-  const other = all.filter(i=>i.kind==='other');
-  if (other.length) h += `<h4>Notes</h4>` + other.map(i=>row(i)).join('');
-  const tr = all.filter(i=>i.kind==='training');
-  if (tr.length) h += `<h4>Training, no fixture</h4>` + tr.map(i=>row(i,true)).join('');
-  const trs = M.train.filter(t=>t.day===day && passesT(t)).sort((a,b)=>a.ts-b.ts || a.surface.localeCompare(b.surface));
-  if (trs.length) h += `<h4>Training</h4>` + trs.map(t=>`<div class="row"><span class="t">${fmtT(t.ts)}–${fmtT(t.te)}</span><span><b>${esc(t.team)}</b> · ${t.cols.length>1?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}${t.sharedWith.length?'<span class="pill sh">Shared pitch</span>':''}${t.over?'<span class="pill bad">Over capacity</span>':''}${bwOn(day)&&t.surface==='grass'?'<span class="pill bad">Grass not available</span>':''}${t.sharedWith.length?`<br><small class="status">With ${t.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}${t.notes?`<br><small class="status">${esc(t.notes)}</small>`:''}</span></div>`).join('');
-  const rb = M.resBookings.filter(b=>b.day===day && !b.bad && (!S.q || (b.team+' '+b.notes).toLowerCase().includes(S.q.toLowerCase()))).sort((a,b)=>a.start-b.start || a.resource.localeCompare(b.resource));
-  if (rb.length) h += `<h4>Paddock &amp; scrum machines</h4>` + rb.map(b=>`<div class="row"><span class="t">${fmtT(b.start)}–${fmtT(b.end)}</span><span><b>${esc(b.resource)}</b> · ${esc(b.team||'Booked')}${b.clash?'<span class="pill bad">Double booked</span>':''}${b.notes?`<br><small class="status">${esc(b.notes)}</small>`:''}</span></div>`).join('');
-  if (bwOn(day)) h = `<div class="row"><span><span class="pill bad">Bad weather</span></span><span>${BW_NOTE}</span></div>` + h;
-  if (!h) return '';
-  return `<section class="card"><h3>${dayTitle(day)}</h3>${h}</section>`;
-}
-function issuesPanel(M){
-  const sh = M.shared.map(s=>`<li><b>${dayTitle(s.day)}</b>, ${SURF[s.surface]} pitch, ${fmtT(slotById(s.slot).s)}–${fmtT(slotById(s.slot).e)}: ${s.items.map(i=>`${esc(i.team)} (${sizeLabel(i).replace(' pitch','').replace('Half of','1/2')}, ${posLabel(i).replace(SURF[s.surface]+' ','')})`).join(' + ')}</li>`).join('');
-  const ov = M.over.map(i=>`<li><b>${dayTitle(i.day)}</b> ${fmtT(slotById(i.slot).s)}: ${esc(i.team)} clashes on the ${SURF[i.surface]} pitch: the ${fmtT(slotById(i.slot).s)} slot needs ${i.groupTotal.toFixed(2).replace(/\.?0+$/,'')} pitches, only 1 available</li>`).join('');
-  const bv = M.badVenue.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" has venue "${esc(i.badVenue)}" (expected HG, HA or AW)</li>`).join('');
-  const un = M.unconfirmed.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)}, "${esc(i.act)}"</li>`).join('');
-  const mm = M.mismatch.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue}, but the name suggests ${i.venue==='AW'?'home':'away'}</li>`).join('');
-  const rc = M.roomClashes.map(r=>`<li><b>${dayTitle(r.day)}</b> ${fmtT(r.start)}: ${esc(r.item.team)} has no free changing room; all rooms are busy until ${fmtT(r.freeAt)}</li>`).join('');
-  let h = '';
-  const vg = M.visitorGaps.map(i=>`<li><b>${dayTitle(i.day)}</b> ${fmtT(slotById(i.slot).e)}: ${esc(i.team)} v ${esc(i.act||'the visitors')} has no free changing room for the visitors</li>`).join('');
-  const po = M.pitchOverlaps.map(o=>`<li><b>${dayTitle(o.a.day)}</b>, ${SURF[o.a.surface]} pitch: ${esc(o.a.team)} (${fmtT(slotById(o.a.slot).s)}–${fmtT(slotById(o.a.slot).e)}) overlaps ${esc(o.b.team)} (${fmtT(slotById(o.b.slot).s)}–${fmtT(slotById(o.b.slot).e)}); the two are not added together, so check the pitch is big enough</li>`).join('');
-  const rcList = M.resClashes.filter(b=>b.reserved || b.clashOther);   // a booking that only clashes with a reserved slot is reported once, on the reserved line
-  const rcl = rcList.map(b=>`<li><b>${dayTitle(b.day)}</b> ${esc(b.resource)} ${fmtT(b.start)}–${fmtT(b.end)}: ${b.reserved ? `${esc(b.team)} always uses the paddock then, but ${b.clashWith.map(esc).join(', ')} has it booked` : b.clashReserved ? `${esc(b.team||'Booked')} is booked while the paddock is reserved for ${esc(b.reservedFor)}` : `${esc(b.team||'Booked')} overlaps another booking`}</li>`).join('');
-  const bb = M.badBookings.map(b=>`<li>${b.date?dayTitle(b.day):'Bookings sheet'}: ${esc(b.team||'row')} ${b.resource?'':`has resource "${esc(b.rawRes)}" (expected ${CONFIG.RESOURCES.map(esc).join(', ')})`}${b.resource && (b.start==null||b.end==null||b.end<=b.start)?'has a missing or invalid time':''}</li>`).join('');
-  const to = M.trainOver.map(t=>`<li><b>${dayTitle(t.day)}</b> ${fmtT(t.ts)}–${fmtT(t.te)}: ${esc(t.team)} has no space on the ${SURF[t.surface]} pitch</li>`).join('');
-  const wet = DAYS.filter(bwOn).map(d=>{ const g = M.train.filter(t=>t.day===d && t.surface==='grass'); return `<li><b>${dayTitle(d)}</b>: ${g.length ? g.map(t=>esc(t.team)+' ('+fmtT(t.ts)+'–'+fmtT(t.te)+')').join(', ')+' normally on the grass need to move' : 'no grass training planned'}</li>`; }).join('');
-  const bt = M.badTrain.map(t=>`<li>Training sheet: ${esc(t.team||'a row')} ${t.day?DAY_NAME[t.day]:'(day not recognised)'}${!t.res?` has resource "${esc(t.rawRes)}" (expected Grass, AGP or Paddock)`:''}${t.res && (t.s==null||t.e==null||t.e<=t.s)?' has a missing or invalid time':''}</li>`).join('');
-  if (wet) h += `<h2>Bad weather days</h2><ul>${wet}</ul>`;
-  if (to) h += `<h2 style="margin-top:10px">Training over capacity (${M.trainOver.length})</h2><ul>${to}</ul>`;
-  if (bt) h += `<h2 style="margin-top:10px">Check the training sheet (${M.badTrain.length})</h2><ul>${bt}</ul>`;
-  if (rcl) h += `<h2>Paddock &amp; scrum machine clashes (${rcList.length})</h2><ul>${rcl}</ul>`;
-  if (bb) h += `<h2 style="margin-top:10px">Check the bookings sheet (${M.badBookings.length})</h2><ul>${bb}</ul>`;
-  if (rc) h += `<h2>Changing room clashes (${M.roomClashes.length})</h2><ul>${rc}</ul>`;
-  if (vg) h += `<h2 style="margin-top:10px">Visitors' changing rooms (${M.visitorGaps.length})</h2><ul>${vg}</ul>`;
-  if (po) h += `<h2 style="margin-top:10px">Pitch times overlap (${M.pitchOverlaps.length})</h2><ul>${po}</ul>`;
-  if (ov) h += `<h2>Over capacity (${M.over.length})</h2><ul>${ov}</ul>`;
-  if (sh) h += `<h2 style="margin-top:10px">Shared pitches (${M.shared.length})</h2><ul>${sh}</ul>`;
-  if (mm || bv) h += `<h2 style="margin-top:10px">Check the sheet (${M.mismatch.length+M.badVenue.length})</h2><ul>${mm}${bv}</ul>`;
-  if (un) h += `<h2 style="margin-top:10px">Unconfirmed (${M.unconfirmed.length})</h2><ul>${un}</ul>`;
-  if (!h) h = `<span class="ok">No shared pitches, capacity or changing-room problems, or unconfirmed games this weekend.</span>`;
-  return `<div class="panel">${h}<p>Time slots and pitch positions are worked out from the age group and pitch size; the sheet doesn't hold kick-off times. Each surface is one full pitch in two halves. A full-size team on its own takes both halves; with another team it takes one half.</p></div>`;
+function attentionBar(M){
+  const L = attentionItems(M);
+  if (!L.length) return `<div class="okline">✓ Nothing needs attention this week</div>`;
+  return `<div class="attn" data-open="${S.attnOpen}"><button data-attn aria-expanded="${S.attnOpen}">⚠ ${L.length} thing${L.length>1?'s':''} need${L.length>1?'':'s'} attention<span class="chev">▸</span></button><ul>${L.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
 }
 function render(){
   if (document.activeElement && document.activeElement.id==='msgText') return;   // don't overwrite text being edited
   const M = modelFor(S.sat), tv = document.body.classList.contains('tv');
-  const fri = addDays(S.sat,-1), sun = addDays(S.sat,1);
   $('#wk').textContent = weekRange() + ' · Week ' + weekLetter(S.sat);
+  $('#today').hidden = iso(S.sat) === iso(upcomingSaturday());
   $('#status').textContent = (DATA.sample ? (SNAPSHOT_DATE ? 'Sheet copied '+SNAPSHOT_DATE : 'Sample data') : (LAST_OK ? 'Updated '+LAST_OK.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : 'Loading…'));
   $('#banners').innerHTML =
     (ERROR?`<div class="banner">${esc(ERROR)}</div>`:'') +
     (DATA.sample && !SNAPSHOT_DATE ? `<div class="banner info">Showing sample data. Set <code>FIXTURES_CSV_URL</code> in CONFIG to read the club sheet live.</div>` : '');
   document.querySelectorAll('#viewSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
-  document.querySelectorAll('#daySeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.d===S.day));
-  $('#daySeg').style.display = S.view==='day' ? '' : 'none';
-  $('#chips').innerHTML =
-    Object.keys(SURF).map(k=>`<button class="chip" data-s="${k}" aria-pressed="${S.surf.has(k)}">${SURF[k]}</button>`).join('') +
-    Object.keys(GROUP_LABEL).map(k=>`<button class="chip" data-g="${k}" aria-pressed="${S.grp.has(k)}">${GROUP_LABEL[k]}</button>`).join('') +
-    (M.shared.length?`<span class="chip static share">${M.shared.length} shared</span>`:'') +
-    (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'') +
-    (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'') +
-    (M.resClashes.filter(b=>b.reserved||b.clashOther).length?`<span class="chip static bad">${M.resClashes.filter(b=>b.reserved||b.clashOther).length} booking clash${M.resClashes.filter(b=>b.reserved||b.clashOther).length>1?'es':''}</span>`:'') +
-    (M.trainOver.length?`<span class="chip static bad">${M.trainOver.length} training clash${M.trainOver.length>1?'es':''}</span>`:'') +
-    (DAYS.some(bwOn)?`<span class="chip static bad">Bad weather: ${DAYS.filter(bwOn).map(d=>d[0].toUpperCase()+d.slice(1)).join(', ')}</span>`:'');
+  const days = DAYS.filter(d=>dayHasContent(M,d)||bwOn(d));
+  if (days.length && !days.includes(S.day)) S.day = days[0];
+  $('#daySeg').style.display = S.view==='day' && days.length ? '' : 'none';
+  $('#daySeg').innerHTML = days.map(d=>`<button data-d="${d}" aria-pressed="${d===S.day}">${dayLabel(d)}<small>${daySummary(M,d) || '&nbsp;'}</small></button>`).join('');
   let h = '';
-  const dayBlock = d => `${dayHead(d)}${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${freeKey(M,d)}${roomGrid(M,d)}${resourceGrid(M,d)}`;
-  if (S.view==='day') h = dayBlock(S.day);
-  else if (S.view==='weekend') { const ds = DAYS.filter(d=>dayHasContent(M,d)||bwOn(d)); h = ds.length ? ds.map(dayBlock).join('') : `<div class="panel">Nothing scheduled this week.</div>`; }
-  else if (S.view==='message') h = messageView(M);
-  else { const cards = DAYS.map(d=>agendaDay(M,d)).join(''); h = `<div class="agenda">${cards || '<div class="panel">Nothing scheduled this week.</div>'}</div>` + `<div class="bwbar" style="margin:0 0 10px">${DAYS.filter(d=>dayHasContent(M,d)).map(d=>`<button class="btn bwbtn" data-bw="${d}" aria-pressed="${bwOn(d)}">${DAY_NAME[d].slice(0,3)}: ${bwOn(d)?'bad weather on':'bad weather?'}</button>`).join('')}${DAYS.some(bwOn)?'<button class="btn" data-bwlink="1">Copy link</button>':''}</div>`; }
-  $('#main').innerHTML = h + (tv || S.view==='message' ? '' : issuesPanel(M));
+  if (S.view==='message') h = messageView(M);
+  else if (!days.length) h = (tv ? '' : attentionBar(M)) + `<div class="card">Nothing scheduled this week.</div>`;
+  else {
+    const grid = dayGrid(M, S.day), list = dayList(M, S.day);
+    h = (tv ? '' : attentionBar(M)) + `<div class="plan">${dayHead(M, S.day)}` +
+      (grid || list ? `<div class="card"><div class="gridwrap">${grid}</div><div class="plist">${list}</div>${dayKey(M, S.day)}</div>` : `<div class="card sub">No pitch sessions ${S.q ? 'match your search' : 'on this day'}.</div>`) +
+      roomTable(M, S.day) + paddockList(M, S.day) + awayLine(M, S.day) + `</div>`;
+  }
+  $('#main').innerHTML = h;
 }
-
 /* ============================ WEEKEND MESSAGE ============================ */
 // One message for the whole manager community. The coordinator can edit it before copying; edits are kept per weekend.
 const MSG_KINDS = ['match','away','session','festival','festival-off'];
@@ -885,24 +863,20 @@ function msgTeamLines(i){
   const opp = (i.act||'').replace(/\s+/g,' ').trim(), slot = slotById(i.slot);
   const isMatch = i.kind==='match' || (i.kind==='away' && !SESSION_RE.test(opp) && !/fest/i.test(opp));
   const extra = i.extra ? ` (${i.extra})` : '';
-  if (i.paddock){                                               // U6: always the paddock, nobody else books it then
-    return [`${i.team} – PADDOCK${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   Paddock ${fmtT(slot.s)}–${fmtT(slot.e)} | no other bookings at this time`];
-  }
-  if (!i.surface){                                              // away or off-site
-    const what = isMatch ? `${i.team} – AWAY v ${opp || '[opponent TBC]'}` : `${i.team} – AWAY: ${opp}`;
-    return [`${what}${extra}`, `   Meet at [time] at [ground] | Kick-off [time]${isMatch ? ' | Referee [TBC]' : ''}`];
-  }
-  const head = i.kind==='match' ? `${i.team} – HOME v ${opp || '[opponent TBC]'}` : i.kind==='session' ? `${i.team} – SESSION: ${opp}` : `${i.team} – EVENT: ${opp}`;
-  const t = [`${i.ko!=null ? 'Pitch' : 'Slot'} ${fmtT(slot.s)}–${fmtT(slot.e)}`, i.ko!=null ? `Kick-off ${fmtT(i.ko)}` : `Kick-off [time]`];
-  if (isMatch) t.push('Referee [TBC]');
-  const p = [`Pitch: ${posLabel(i)} (${sizeLabel(i)})${i.sharedWith.length ? ', shared with ' + i.sharedWith.map(o=>o.team).join(', ') : ''}`];
-  if (i.over) p.push('pitch to be confirmed');
-  if (i.room !== undefined) p.push(i.room==null ? 'Changing room: none free, please speak to me' : `Changing room: Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors: Room ${i.roomAway})` : ' (visitors: no room free, please speak to me)') : ''} (from about ${fmtT(slot.e)})`);
-  if (!i.noCp) p.push(i.cp ? 'Car park: your team is marshalling' : 'Car park: not on duty');
-  return [`${head}${extra}`, `   ${t.join(' | ')}`, `   ${p.join(' | ')}`];
+  const when = `⏰ ${fmtT(slot.s)}–${fmtT(slot.e)}`;
+  if (i.paddock) return [`🌱 ${i.team} – Paddock${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   ${when}`];
+  if (!i.surface)                                                // away or off-site
+    return [`🚌 ${i.team} – away ${isMatch ? 'v ' + (opp || '[opponent TBC]') : opp}${extra}`, `   Meet [time] at [ground] · KO [time]`];
+  const head = i.kind==='match' ? `🏉 ${i.team} v ${opp || '[opponent TBC]'}` : `🏉 ${i.team} – ${opp || 'session'}`;
+  const t = [i.ko!=null ? `${when} · KO ${fmtT(i.ko)}` : `${when} · KO [time]`];
+  if (isMatch) t.push('Ref [TBC]');
+  const p = [`🏟 ${posLabel(i)}${i.sharedWith.length ? ' (shared)' : ''}${i.over ? ' – to be confirmed' : ''}`];
+  if (i.room !== undefined) p.push(i.room==null ? '🚪 none free – speak to me' : `🚪 Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors ${i.roomAway})` : ' (visitors: none free)') : ''}`);
+  if (!i.noCp && i.cp) p.push('🅿️ car park duty');
+  return [`${head}${extra}`, `   ${t.join(' · ')}`, `   ${p.join(' · ')}`];
 }
 function buildWeekendMessage(M){
-  const L = ['Hi all,', '', `Weekend logistics – ${weekendRange()}`, ''];
+  const L = ['Hi all 👋', '', `📅 Weekend ${weekendRange()}`, ''];
   let any = false;
   for (const day of WEEKEND_DAYS){
     const items = M.items.filter(i=>i.day===day && MSG_KINDS.includes(i.kind));
@@ -910,10 +884,10 @@ function buildWeekendMessage(M){
     const trd = M.train.filter(t=>t.day===day).sort((a,b)=>a.ts-b.ts || a.surface.localeCompare(b.surface));
     if (!items.length && !rb.length && !trd.length) continue;
     any = true;
-    L.push(dayTitle(day).toUpperCase());
-    if (bwOn(day)) L.push(BW_NOTE);
+    L.push(`— ${dayTitle(day).toUpperCase()} —`);
+    if (bwOn(day)) L.push('🌧 ' + BW_NOTE);
     const cp = items.filter(i=>i.surface && i.cp).map(i=>i.team);
-    if (cp.length) L.push(`Car park marshals: ${cp.join(', ')}`);
+    if (cp.length) L.push(`🅿️ Car park: ${cp.join(', ')}`);
     L.push('');
     const byTeam = (a,b)=>GROUP_ORDER.indexOf(a.group)-GROUP_ORDER.indexOf(b.group) || seniority(a.team)-seniority(b.team);
     for (const sl of CONFIG.SLOTS){
@@ -922,18 +896,18 @@ function buildWeekendMessage(M){
     }
     items.filter(i=>!i.surface).sort(byTeam).forEach(i=>{ L.push(...msgTeamLines(i), ''); });
     if (trd.length){
-      L.push('Training');
-      trd.forEach(t=>L.push(`   ${fmtT(t.ts)}–${fmtT(t.te)} ${t.team}: ${t.cols.length>1?SURF[t.surface]+' 1 + 2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half pitch)':''}${bwOn(day)&&t.surface==='grass'?' – grass not available, needs to move':''}`));
+      L.push('🏃 Training');
+      trd.forEach(t=>L.push(`   ${fmtT(t.ts)}–${fmtT(t.te)} ${t.team} · ${t.cols.length>1?SURF[t.surface]+' 1+2':SURF[t.surface]+' '+(t.cols[0]+1)}${t.frac<0.99?' (half)':''}${bwOn(day)&&t.surface==='grass'?' – grass not available, needs to move':''}`));
       L.push('');
     }
     if (rb.length){
-      L.push('Paddock & scrum machines');
-      rb.forEach(b=>L.push(`   ${b.resource}: ${fmtT(b.start)}–${fmtT(b.end)} ${b.team||'booked'}${b.notes?' ('+b.notes+')':''}${b.clash?' – CLASH, please speak to me':''}`));
+      L.push('🥅 Paddock & scrum machines');
+      rb.forEach(b=>L.push(`   ${fmtT(b.start)}–${fmtT(b.end)} ${b.resource} · ${b.team||'booked'}${b.notes?' ('+b.notes+')':''}${b.clash?' ⚠️ clash – speak to me':''}`));
       L.push('');
     }
   }
   if (!any) L.push('Nothing scheduled this weekend.', '');
-  L.push('Please arrive ready to play and get changed after the match.', 'Any problems, just reply to this message.', 'Thanks,', CONFIG.MESSAGE_SIGNOFF);
+  L.push('Any problems, just reply here. Thanks! 🙏', CONFIG.MESSAGE_SIGNOFF);
   return L.join('\n');
 }
 S.drafts = {};
@@ -941,7 +915,7 @@ const draftKey = () => iso(S.sat);
 function weekendText(M){ return S.drafts[draftKey()] ?? buildWeekendMessage(M); }
 function messageView(M){
   const edited = S.drafts[draftKey()] !== undefined;
-  return `<div class="mintro"><p>One message for all team managers, filled in from the sheet. Fill in the [bracketed] gaps (kick-off, referee, meet times) and edit anything you like, then copy it. Your edits are kept for this weekend until you reset. Pitch slots and room times are estimates until kick-off times are in the sheet.</p>
+  return `<div class="mintro"><p>Fill in the [gaps], edit if you like, then copy. Edits are kept until you reset.</p>
     <span><button class="btn primary" data-copy="msg">Copy message</button> <button class="btn" data-reset="msg" ${edited?'':'disabled'}>Reset</button></span></div>
     <textarea id="msgText" class="msgbox" spellcheck="false" aria-label="Weekend message">${esc(weekendText(M))}</textarea>`;
 }
@@ -954,8 +928,8 @@ async function copyWeekend(btn){
     const box = $('#msgText'); box.focus(); box.select(); flash(btn, 'Selected: press Ctrl/Cmd+C');
   }
 }
-$('#copyBar').onclick = e => copyWeekend(e.currentTarget);
 $('#main').addEventListener('click', e => {
+  if (e.target.closest('[data-attn]')){ S.attnOpen = !S.attnOpen; render(); return; }
   const c = e.target.closest('[data-copy]'); if (c) copyWeekend(c);
   const r = e.target.closest('[data-reset]'); if (r && !r.disabled){ delete S.drafts[draftKey()]; render(); }
 });
@@ -977,10 +951,6 @@ $('#prev').onclick = () => shift(-7);
 $('#next').onclick = () => shift(7);
 $('#today').onclick = () => { S.sat=upcomingSaturday(); S.dayPicked=false; autoDay(); render(); };
 $('#q').oninput = e => { S.q=e.target.value; render(); $('#q').focus(); };
-$('#chips').onclick = e => {
-  const s=e.target.dataset.s, g=e.target.dataset.g, set = s?S.surf:S.grp, k=s||g; if(!k) return;
-  set.has(k)?set.delete(k):set.add(k); render();
-};
 addEventListener('hashchange', () => { readHash(); render(); });
 
 readHash(); load();
