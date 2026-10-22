@@ -30,3 +30,5 @@ The sheet IDs are in `SHEET_IDS` at the top of `refresh.py`.
 With no service account configured, `refresh.py` reads `latest.b64`, `bookings.b64` and `training.b64` (base64 text of each sheet's first tab as CSV, e.g. from the Drive `download_file_content` tool). Retyping a long base64 string is error-prone, so use this only by hand, not for the scheduled run.
 
 `latest.b64`, `bookings.b64`, `training.b64`, `latest.csv`, `index.html` and `artifact.html` in this folder are git-ignored.
+
+`opposition.py` lists the clubs we play from the Fixtures tab's Opponent column (cleaning spellings such as `T'dale`, `Gosforth away`, `Blyth / Ashington`) and writes the `Opposition clubs` and `Opposition clubs (summary)` tabs of the table sheet (dry run by default, `--apply` to write; it touches nothing else). It is the thin version: only clubs we have fixtures against, County left blank. Edit `ALIAS` and `NOT_CLUB` at the top of the script when a name comes out wrong.
