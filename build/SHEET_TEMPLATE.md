@@ -63,7 +63,7 @@ Format the Date column as plain `yyyy-mm-dd` (Format > Number > Custom date and 
 
 ## Running the sync and switching over
 1. **Parallel:** `python3 sync_tables.py` (add `--dry-run` to preview). Edit only the old grid sheet; the new tabs are rewritten each run. Safety checks: it stops without writing if the grid looks wrong or the row count drops by more than 20%.
-2. **Switch the feed:** run the routine with `FIXTURES_FEED=table` (`python3 refresh.py`) so the page is built from the new table. The sync keeps running first.
+2. **Switch the feed:** `refresh.py` now builds the page from the table sheet by default (`FIXTURES_FEED=grid` goes back to the old grid). While Config "Sync from grid" is ON, run `sync_tables.py` before a refresh to copy grid changes across; set it to OFF to maintain the table by hand.
 3. **Cut over:** set Config!B1 to OFF and remove the protection. The table is now edited by hand and nothing overwrites it. Archive the old sheet.
 4. **Clean up:** later, delete `parseGrid`, `migrate_grid.py`, `sync_tables.py` and the grid feed.
 
