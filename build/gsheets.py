@@ -72,3 +72,12 @@ def put_values(sess, sheet_id, rng, values, label):
     """Write values as plain text (RAW), leaving the sheet's dropdowns and formatting alone."""
     _call(sess, 'put', f'{SHEETS}/{sheet_id}/values/{quote(rng, safe="")}', f'{label} ({rng})',
           params={'valueInputOption': 'RAW'}, json={'range': rng, 'majorDimension': 'ROWS', 'values': values})
+
+def sheet_ids(sess, sheet_id, label):
+    """{tab name: numeric sheetId} for every tab of a spreadsheet."""
+    r = _call(sess, 'get', f'{SHEETS}/{sheet_id}', f'{label} (tabs)', params={'fields': 'sheets.properties(sheetId,title)'})
+    return {x['properties']['title']: x['properties']['sheetId'] for x in r.json().get('sheets', [])}
+
+def batch_update(sess, sheet_id, requests, label):
+    """Send formatting/validation requests (dropdowns, conditional formats, protected ranges)."""
+    _call(sess, 'post', f'{SHEETS}/{sheet_id}:batchUpdate', label, json={'requests': requests})
