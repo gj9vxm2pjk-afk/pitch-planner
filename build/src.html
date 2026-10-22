@@ -193,9 +193,14 @@ const CONFIG = {
   SLOT_BY_GROUP: { 'MINIS': 'a', 'JUNIOR BOYS': 'b' },
   SLOT_BY_TEAM: { 'Colts': 'c' },            // per-team overrides win over group
   // Minimum pitch share per team (from the sheet's "Config and info" tab; used if that tab isn't linked).
-  PITCH_SHARE: { 'U6': 1/3, 'U7': 1/3, 'U8': 1/3, 'U9': 1/3, 'U10': 1/3, 'U11': 1/2, 'U12 Boys': 1/2, 'U12 Girls': 1/2,
+  PITCH_SHARE: { 'U6': 1/3, 'U7': 1/3, 'U8': 1/3, 'U9': 1/3, 'U10': 1/3, 'U11': 1/3, 'U12 Boys': 1/3, 'U12 Girls': 1/2,
                  'U13 Boys': 1, 'U13 Girls': 1, 'U14 Boys': 1, 'U15 Boys': 1, 'U16 Boys': 1, 'U16 Girls': 1, 'Colts': 1 },
-  DEFAULT_SHARE: 1
+  DEFAULT_SHARE: 1,
+  // Mini sizes for the listed teams (these override the sizes above and the Config tab): a third of a pitch for training and
+  // pre-season, half for a home match, the whole pitch for a home festival.
+  MINIS: { teams: ['U7','U8','U9','U10','U11','U12 Boys'], session: 1/3, match: 1/2, festival: 1 },
+  // U6 always use the paddock in this slot on this day and nobody else may book it then; they never use a pitch on that day.
+  PADDOCK_RESERVED: [ { team: 'U6', day: 'sun', slot: 'a' } ]
 };
 const SAMPLE_CSV = /*SAMPLE_CSV*/"";
 const TRAINING_CSV = /*TRAINING_CSV*/"";       // copy of the training schedule sheet (set by refresh.py)
@@ -407,6 +412,13 @@ function applyConfigRows(rows){
   }
 }
 const shareOf = team => CONFIG.PITCH_SHARE[team] ?? CONFIG.DEFAULT_SHARE;
+// pitch share for one fixture: the mini teams change size with what they are doing, everyone else uses their fixed size
+const fracFor = it => {
+  const m = CONFIG.MINIS;
+  if (!m.teams.includes(it.team)) return shareOf(it.team);
+  return it.kind==='festival' ? m.festival : it.kind==='match' ? m.match : m.session;
+};
+const paddockRule = (it, day) => CONFIG.PADDOCK_RESERVED.find(r => r.team===it.team && r.day===day) && ['training','session','match','festival'].includes(it.kind);
 const slotIdFor = it => CONFIG.SLOT_BY_TEAM[it.team] || CONFIG.SLOT_BY_GROUP[it.group] || 'c';
 const slotById = id => CONFIG.SLOTS.find(s=>s.id===id);
 
@@ -459,10 +471,15 @@ function buildRooms(items){
   return {reqs, clashes};
 }
 function modelFor(sat){
-  const items = [];
+  const items = [], paddockRes = [];
   for (const it of DATA.items){
     const day = dayKeyFor(it.date, sat); if (!day) continue;
-    items.push({...it, day, slot: slotIdFor(it), frac: shareOf(it.team)});
+    const rule = paddockRule(it, day) ? CONFIG.PADDOCK_RESERVED.find(r => r.team===it.team && r.day===day) : null;
+    items.push({...it, day, slot: slotIdFor(it), frac: fracFor(it), ...(rule ? {surface:'', paddock:true} : {})});
+    if (rule && !paddockRes.some(b=>b.team===it.team && b.day===day)){
+      const sl = slotById(rule.slot);
+      paddockRes.push({date: it.date, start: sl.s, end: sl.e, resource: 'Paddock', rawRes: 'Paddock', team: it.team, notes: 'Reserved: nobody else can book the paddock then', bad: false, day, reserved: true});
+    }
   }
   // allocate home teams within each surface + slot: full pitch = both halves, smaller teams share the halves
   const groups = {};
@@ -498,6 +515,7 @@ function modelFor(sat){
     const day = dayKeyFor(b.date, sat); if (!day) continue;
     res.push({...b, day});
   }
+  res.push(...paddockRes);
   // weekly training: pitch sessions are placed on the halves of each surface; paddock sessions join the paddock bookings
   const wk = weekLetter(sat), train = [], badTrain = [];
   for (const t of (DATA.training||[])){
@@ -521,7 +539,8 @@ function modelFor(sat){
     list.forEach(t=>{ t.sharedWith = list.filter(o=>o!==t && o.ts<t.te && t.ts<o.te); });
   }
   const valid = res.filter(b=>!b.bad);
-  valid.forEach(a=>{ a.clash = valid.some(o=>o!==a && o.day===a.day && o.resource===a.resource && o.start < a.end && a.start < o.end); });
+  const overlap = (a,o) => o!==a && o.day===a.day && o.resource===a.resource && o.start < a.end && a.start < o.end;
+  valid.forEach(a=>{ a.clash = valid.some(o=>overlap(a,o)); a.clashReserved = !a.reserved && valid.some(o=>o.reserved && overlap(a,o)); a.reservedFor = (valid.find(o=>o.reserved && overlap(a,o))||{}).team; a.clashOther = valid.some(o=>!o.reserved && overlap(a,o)); a.clashWith = a.reserved ? valid.filter(o=>!o.reserved && overlap(a,o)).map(o=>o.team||'another booking') : []; });
   return {
     train, badTrain, trainOver: train.filter(t=>t.over), weekLetter: wk,
     resBookings: res, resClashes: valid.filter(b=>b.clash), badBookings: res.filter(b=>b.bad),
@@ -587,8 +606,10 @@ function freeSlotsFor(M, day){
 const freeLabel = f => f>=0.99 ? 'whole pitch' : f>=0.65 ? '2/3 pitch' : f>=0.49 ? 'half pitch' : '1/3 pitch';
 function freeFits(f){
   if (f>=0.99) return 'any team';
-  const teams = Object.entries(CONFIG.PITCH_SHARE).filter(([,sh])=>sh <= f+0.01).map(([t])=>t);
-  return teams.length ? 'room for ' + teams.join(', ') : '';
+  const m = CONFIG.MINIS;
+  const others = Object.entries(CONFIG.PITCH_SHARE).filter(([t,sh])=>!m.teams.includes(t) && !CONFIG.PADDOCK_RESERVED.some(r=>r.team===t) && sh <= f+0.01).map(([t])=>t);
+  if (f >= m.match - 0.01) return 'room for ' + [...m.teams, ...others].join(', ');
+  return f >= m.session - 0.01 ? 'room for ' + [...m.teams, ...others].join(', ') + ' (training, not a match)' : '';
 }
 const freeKey = (M, day) => freeSlotsFor(M, day).length ? `<p class="sub freekey"><span class="swatch"></span> Dashed box = space available in that time slot. A team of that size could use it.</p>` : '';
 function dayGrid(M, day){
@@ -731,7 +752,7 @@ function roomLine(i){
 function agendaDay(M, day){
   const all = M.items.filter(i=>i.day===day && passes(i));
   const row = (i, dim) => `<div class="row ${dim?'dim':''}"><span class="t">${esc(i.team)}</span><span>${esc(i.act||'Opponent TBC')}${i.extra?` <small class="status">(${esc(i.extra)})</small>`:''}
-    ${i.surface?` · ${posLabel(i)} · ${sizeLabel(i)}`:''}${badges(i)}
+    ${i.surface?` · ${posLabel(i)} · ${sizeLabel(i)}`:''}${i.paddock?` · Paddock ${fmtT(slotById(i.slot).s)}–${fmtT(slotById(i.slot).e)}`:''}${badges(i)}
     ${i.sharedWith&&i.sharedWith.length?`<br><small class="status">Sharing with ${i.sharedWith.map(o=>esc(o.team)).join(', ')}</small>`:''}
     ${roomLine(i)}</span></div>`;
   let h = '';
@@ -761,7 +782,8 @@ function issuesPanel(M){
   const mm = M.mismatch.map(i=>`<li>${dayTitle(i.day)}: ${esc(i.team)} "${esc(i.act)}" is marked ${i.venue}, but the name suggests ${i.venue==='AW'?'home':'away'}</li>`).join('');
   const rc = M.roomClashes.map(r=>`<li><b>${dayTitle(r.day)}</b> ${fmtT(r.start)}: ${esc(r.item.team)} has no free changing room; all rooms are busy until ${fmtT(r.freeAt)}</li>`).join('');
   let h = '';
-  const rcl = M.resClashes.map(b=>`<li><b>${dayTitle(b.day)}</b> ${esc(b.resource)} ${fmtT(b.start)}–${fmtT(b.end)}: ${esc(b.team||'Booked')} overlaps another booking</li>`).join('');
+  const rcList = M.resClashes.filter(b=>b.reserved || b.clashOther);   // a booking that only clashes with a reserved slot is reported once, on the reserved line
+  const rcl = rcList.map(b=>`<li><b>${dayTitle(b.day)}</b> ${esc(b.resource)} ${fmtT(b.start)}–${fmtT(b.end)}: ${b.reserved ? `${esc(b.team)} always uses the paddock then, but ${b.clashWith.map(esc).join(', ')} has it booked` : b.clashReserved ? `${esc(b.team||'Booked')} is booked while the paddock is reserved for ${esc(b.reservedFor)}` : `${esc(b.team||'Booked')} overlaps another booking`}</li>`).join('');
   const bb = M.badBookings.map(b=>`<li>${b.date?dayTitle(b.day):'Bookings sheet'}: ${esc(b.team||'row')} ${b.resource?'':`has resource "${esc(b.rawRes)}" (expected ${CONFIG.RESOURCES.map(esc).join(', ')})`}${b.resource && (b.start==null||b.end==null||b.end<=b.start)?'has a missing or invalid time':''}</li>`).join('');
   const to = M.trainOver.map(t=>`<li><b>${dayTitle(t.day)}</b> ${fmtT(t.ts)}–${fmtT(t.te)}: ${esc(t.team)} has no space on the ${SURF[t.surface]} pitch</li>`).join('');
   const wet = DAYS.filter(bwOn).map(d=>{ const g = M.train.filter(t=>t.day===d && t.surface==='grass'); return `<li><b>${dayTitle(d)}</b>: ${g.length ? g.map(t=>esc(t.team)+' ('+fmtT(t.ts)+'–'+fmtT(t.te)+')').join(', ')+' normally on the grass need to move' : 'no grass training planned'}</li>`; }).join('');
@@ -769,7 +791,7 @@ function issuesPanel(M){
   if (wet) h += `<h2>Bad weather days</h2><ul>${wet}</ul>`;
   if (to) h += `<h2 style="margin-top:10px">Training over capacity (${M.trainOver.length})</h2><ul>${to}</ul>`;
   if (bt) h += `<h2 style="margin-top:10px">Check the training sheet (${M.badTrain.length})</h2><ul>${bt}</ul>`;
-  if (rcl) h += `<h2>Paddock &amp; scrum machine clashes (${M.resClashes.length})</h2><ul>${rcl}</ul>`;
+  if (rcl) h += `<h2>Paddock &amp; scrum machine clashes (${rcList.length})</h2><ul>${rcl}</ul>`;
   if (bb) h += `<h2 style="margin-top:10px">Check the bookings sheet (${M.badBookings.length})</h2><ul>${bb}</ul>`;
   if (rc) h += `<h2>Changing room clashes (${M.roomClashes.length})</h2><ul>${rc}</ul>`;
   if (ov) h += `<h2>Over capacity (${M.over.length})</h2><ul>${ov}</ul>`;
@@ -797,7 +819,7 @@ function render(){
     (M.shared.length?`<span class="chip static share">${M.shared.length} shared</span>`:'') +
     (M.over.length?`<span class="chip static bad">${M.over.length} over capacity</span>`:'') +
     (M.roomClashes.length?`<span class="chip static bad">${M.roomClashes.length} room clash${M.roomClashes.length>1?'es':''}</span>`:'') +
-    (M.resClashes.length?`<span class="chip static bad">${M.resClashes.length} booking clash${M.resClashes.length>1?'es':''}</span>`:'') +
+    (M.resClashes.filter(b=>b.reserved||b.clashOther).length?`<span class="chip static bad">${M.resClashes.filter(b=>b.reserved||b.clashOther).length} booking clash${M.resClashes.filter(b=>b.reserved||b.clashOther).length>1?'es':''}</span>`:'') +
     (M.trainOver.length?`<span class="chip static bad">${M.trainOver.length} training clash${M.trainOver.length>1?'es':''}</span>`:'') +
     (DAYS.some(bwOn)?`<span class="chip static bad">Bad weather: ${DAYS.filter(bwOn).map(d=>d[0].toUpperCase()+d.slice(1)).join(', ')}</span>`:'');
   let h = '';
@@ -817,6 +839,9 @@ function msgTeamLines(i){
   const opp = (i.act||'').replace(/\s+/g,' ').trim(), slot = slotById(i.slot);
   const isMatch = i.kind==='match' || (i.kind==='away' && !SESSION_RE.test(opp) && !/fest/i.test(opp));
   const extra = i.extra ? ` (${i.extra})` : '';
+  if (i.paddock){                                               // U6: always the paddock, nobody else books it then
+    return [`${i.team} – PADDOCK${opp && !SESSION_RE.test(opp) ? ': ' + opp : ''}${extra}`, `   Paddock ${fmtT(slot.s)}–${fmtT(slot.e)} | no other bookings at this time`];
+  }
   if (!i.surface){                                              // away or off-site
     const what = isMatch ? `${i.team} – AWAY v ${opp || '[opponent TBC]'}` : `${i.team} – AWAY: ${opp}`;
     return [`${what}${extra}`, `   Meet at [time] at [ground] | Kick-off [time]${isMatch ? ' | Referee [TBC]' : ''}`];
