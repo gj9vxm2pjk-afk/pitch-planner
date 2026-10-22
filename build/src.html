@@ -632,7 +632,8 @@ function autoDay(){
   const t = new Date(); t.setHours(0,0,0,0);
   const today = dayKeyFor(t, S.sat);
   if (today && dayHasContent(M,today)) { S.day = today; return; }
-  const d = DAYS.find(k => dayHasContent(M,k)) || today;
+  const upcoming = today ? DAYS.slice(DAYS.indexOf(today)).find(k => dayHasContent(M,k)) : null;   // next day with something on, not one that has passed
+  const d = upcoming || DAYS.find(k => dayHasContent(M,k)) || today;
   if (d) S.day = d;
 }
 function readHash(){
