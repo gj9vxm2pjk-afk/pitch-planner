@@ -72,11 +72,20 @@ if training_text.strip():
     first = training_text.splitlines()[0].lower() if training_text.strip() else ''
     if not all(k in first for k in ('day','team','start','end','resource')):
         sys.exit('FAILED: training sheet header should include Day, Team, Start, End and Resource')
+# optional fourth input: the Seniors tab of the table sheet (senior men's fixtures with kick-off times), read through the Sheets API
+seniors_text = ''
+if session and SHEET_IDS['table']:
+    vals = gsheets.get_values_optional(session, SHEET_IDS['table'], 'Seniors!A:N', 'the Seniors tab')
+    if vals and any(any(str(c).strip() for c in row) for row in vals[1:]):
+        head = [str(h).strip().lower() for h in vals[0]]
+        if not all(k in head for k in ('date', 'team', 'type', 'venue')):
+            sys.exit('FAILED: the Seniors tab header should include Date, Team, Type and Venue (and Kick-off)')
+        buf = io.StringIO(); csv.writer(buf).writerows(vals); seniors_text = buf.getvalue()
 src = (here/'src.html').read_text()
 stamp = datetime.datetime.now().strftime('%-d %b %H:%M')
 crest = here/'crest.jpg'
 crest_uri = 'data:image/jpeg;base64,' + base64.b64encode(crest.read_bytes()).decode() if crest.exists() else ''
-full = src.replace('/*SAMPLE_CSV*/""', json.dumps(text)).replace('/*SNAPSHOT_DATE*/""', json.dumps(stamp)).replace('/*BOOKINGS_CSV*/""', json.dumps(bookings_text)).replace('/*TRAINING_CSV*/""', json.dumps(training_text)).replace('__CREST__', crest_uri)
+full = src.replace('/*SAMPLE_CSV*/""', json.dumps(text)).replace('/*SNAPSHOT_DATE*/""', json.dumps(stamp)).replace('/*BOOKINGS_CSV*/""', json.dumps(bookings_text)).replace('/*SENIORS_CSV*/""', json.dumps(seniors_text)).replace('/*TRAINING_CSV*/""', json.dumps(training_text)).replace('__CREST__', crest_uri)
 (here/('latest.csv' if FEED == 'grid' else 'fixtures_table.csv')).write_text(text)
 (here/'index.html').write_text(full)
 head = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'
@@ -84,4 +93,4 @@ art = full.replace(head, '').replace('</head>\n<body>\n', '').replace('</body>\n
 assert art != full and art.lstrip().startswith('<title>'), 'artifact wrapper strip failed'
 (here/'artifact.html').write_text(art)
 nb = max(0, len([l for l in bookings_text.splitlines() if l.strip()]) - 1)
-print(f'OK ({FEED} feed): {len(dates)} fixture rows, {len(teams)} teams, {nb} booking rows, {max(0, len([l for l in training_text.splitlines() if l.strip()]) - 1)} training rows, copied {stamp}')
+print(f'OK ({FEED} feed): {len(dates)} fixture rows, {len(teams)} teams, {nb} booking rows, {max(0, len([l for l in training_text.splitlines() if l.strip()]) - 1)} training rows, {max(0, len(list(csv.reader(io.StringIO(seniors_text)))) - 1) if seniors_text else 0} senior rows, copied {stamp}')

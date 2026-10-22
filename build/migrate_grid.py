@@ -5,7 +5,7 @@ Usage: python3 migrate_grid.py [grid.csv] [outdir]
   grid.csv  CSV of the first tab of the grid sheet (default: latest.csv, which refresh.py writes)
   outdir    where to write fixtures.csv and teams.csv (default: migrated/)
 
-fixtures.csv columns: Date, Team, Type, Opponent, Venue, Status, Competition, Changing room, Notes
+fixtures.csv columns: Date, Team, Type, Opponent, Venue, Status, Competition, Car park duty, Notes
 Import fixtures.csv into the first tab of the new sheet and teams.csv into the second (File > Import).
 Rows the script had to interpret are listed on stdout so they can be checked by hand.
 """
@@ -102,7 +102,7 @@ def main():
     rows = list(csv.reader(open(src, newline='', encoding='utf-8-sig')))
     out, blocks, notes = migrate(rows)
     outdir.mkdir(parents=True, exist_ok=True)
-    head = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Changing room', 'Notes']
+    head = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Car park duty', 'Notes']
     with open(outdir / 'fixtures.csv', 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f); w.writerow(head); w.writerows(out)
     with open(outdir / 'teams.csv', 'w', newline='', encoding='utf-8') as f:
