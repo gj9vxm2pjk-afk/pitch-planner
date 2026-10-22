@@ -91,6 +91,9 @@ details.allmsg summary{cursor:pointer;color:var(--muted);font-size:.88rem}
   color:#101410;border:1px solid rgba(0,0,0,.25)}
 .blk b{display:block;overflow-wrap:anywhere}
 .blk .sub{opacity:.85;overflow-wrap:anywhere}
+.blk.free{background:var(--surface);border:2px dashed var(--muted);color:var(--muted)}
+.freekey{margin:6px 2px 0;display:flex;align-items:center;gap:6px}
+.freekey .swatch{display:inline-block;width:18px;height:12px;border:2px dashed var(--muted);border-radius:3px}
 .blk.shared{border-style:dashed;border-width:2px;border-color:var(--share)}
 .blk.over{outline:3px solid var(--danger);outline-offset:-1px;background-image:repeating-linear-gradient(45deg,rgba(192,38,45,.2) 0 6px,transparent 6px 12px)}
 .tag{display:inline-block;font-weight:700;font-size:.68rem;border-radius:4px;padding:0 4px;margin-right:3px;background:rgba(255,255,255,.7);color:#10161a}
@@ -179,6 +182,8 @@ const CONFIG = {
   ROOM_GROUPS: ['JUNIOR BOYS', 'JUNIOR GIRLS', 'WOMEN'],   // minis don't book rooms
   ROOM_KINDS: ['match'],                                    // add 'session' to book rooms for training too
   OVERRUN: 0.34,                             // allowance before flagging; 0.34 lets 1/3 + 1/2 + 1/2 fit, as the Pitch Usage tab plans
+  SHOW_FREE_SPACE: true,                    // draw dashed 'free' blocks on the Pitches grid where a weekend slot has room
+  FREE_MIN: 0.3,                             // smallest free share worth showing (0.3 = about a third of a pitch)
   SLOTS: [
     { id: 'a', s: 9*60,      e: 10*60+30 },
     { id: 'b', s: 10*60+30,  e: 12*60+30 },
@@ -462,7 +467,7 @@ function modelFor(sat){
   // allocate home teams within each surface + slot: full pitch = both halves, smaller teams share the halves
   const groups = {};
   items.filter(i=>i.surface).forEach(i => (groups[i.day+'|'+i.surface+'|'+i.slot] ||= []).push(i));
-  const shared = [];
+  const shared = [], slotInfo = {};
   for (const k in groups){
     const list = groups[k].slice();
     const surface = list[0].surface, limit = CONFIG.CAPACITY[surface] + CONFIG.OVERRUN + 1e-6, multi = list.length > 1;
@@ -476,7 +481,14 @@ function modelFor(sat){
       else { const c = load[0] <= load[1] ? 0 : 1; i.cols = [c]; load[c] += i.eff; }
       i.sharedWith = list.filter(o=>o!==i);
     });
+    slotInfo[k] = {total, free: tooMany ? 0 : Math.max(0, CONFIG.CAPACITY[surface] - total), freeHalf: load[0] <= load[1] ? 0 : 1};
     if (multi) shared.push({day:list[0].day, surface, slot:list[0].slot, items:list, total, over:tooMany});
+  }
+  // free space per weekend slot: whole pitch when nothing is there, otherwise what is left after the teams placed above
+  const slots = [];
+  for (const day of ['sat','sun']) for (const surface of ['grass','agp']) for (const sl of CONFIG.SLOTS){
+    const inf = slotInfo[day+'|'+surface+'|'+sl.id] || {total:0, free:CONFIG.CAPACITY[surface], freeHalf:0};
+    slots.push({day, surface, slot:sl.id, total:inf.total, free:inf.free, freeHalf:inf.freeHalf, empty:!slotInfo[day+'|'+surface+'|'+sl.id]});
   }
   const rooms = buildRooms(items);
   // paddock & scrum machine bookings for this weekend, with overlap checks per resource
@@ -513,7 +525,7 @@ function modelFor(sat){
   return {
     train, badTrain, trainOver: train.filter(t=>t.over), weekLetter: wk,
     resBookings: res, resClashes: valid.filter(b=>b.clash), badBookings: res.filter(b=>b.bad),
-    items, shared, roomReqs: rooms.reqs, roomClashes: rooms.clashes,
+    items, slots, shared, roomReqs: rooms.reqs, roomClashes: rooms.clashes,
     over: items.filter(i=>i.over),
     unconfirmed: items.filter(i=>i.unconfirmed),
     mismatch: items.filter(i=>i.mismatch),
@@ -565,11 +577,26 @@ function badges(i){
   return h;
 }
 const BW_NOTE = 'Bad weather: grass is not available and the AGP is split into 4 sections, so teams share space. Sessions on the grass need to move, please check with the coordinator.';
+/* free pitch space: which weekend slots to draw as "space available" on the day grid */
+function freeSlotsFor(M, day){
+  if (!CONFIG.SHOW_FREE_SPACE || (day!=='sat' && day!=='sun') || S.grp.size || S.q) return [];
+  if (!M.items.some(i=>i.day===day && i.surface && passes(i))) return [];     // only on days that have pitch sessions
+  const bw = bwOn(day);
+  return M.slots.filter(f=>f.day===day && f.free >= CONFIG.FREE_MIN && (!S.surf.size || S.surf.has(f.surface)) && !(bw && f.surface==='grass'));
+}
+const freeLabel = f => f>=0.99 ? 'whole pitch' : f>=0.65 ? '2/3 pitch' : f>=0.49 ? 'half pitch' : '1/3 pitch';
+function freeFits(f){
+  if (f>=0.99) return 'any team';
+  const teams = Object.entries(CONFIG.PITCH_SHARE).filter(([,sh])=>sh <= f+0.01).map(([t])=>t);
+  return teams.length ? 'room for ' + teams.join(', ') : '';
+}
+const freeKey = (M, day) => freeSlotsFor(M, day).length ? `<p class="sub freekey"><span class="swatch"></span> Dashed box = space available in that time slot. A team of that size could use it.</p>` : '';
 function dayGrid(M, day){
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
   const trs = M.train.filter(t=>t.day===day && passesT(t));
   if (!items.length && !trs.length) return `<div class="panel">No pitch sessions ${S.surf.size||S.grp.size||S.q ? 'match the current filters' : 'on this day'}.</div>`;
-  const times = [...items.flatMap(i=>[slotById(i.slot).s, slotById(i.slot).e]), ...trs.flatMap(t=>[t.ts,t.te])];
+  const freeSl = freeSlotsFor(M, day);
+  const times = [...items.flatMap(i=>[slotById(i.slot).s, slotById(i.slot).e]), ...trs.flatMap(t=>[t.ts,t.te]), ...(freeSl.length ? CONFIG.SLOTS.flatMap(s=>[s.s,s.e]) : [])];
   const t0 = Math.floor(Math.min(...times)/60)*60, t1 = Math.ceil(Math.max(...times)/60)*60;
   const cols=[];
   for (const surf of ['grass','agp']){
@@ -594,10 +621,19 @@ function dayGrid(M, day){
           <b>${sh?'<span class="tag sh">SHARED</span>':''}${i.over?'<span class="tag ov">OVER</span>':''}${esc(i.team)}</b>
           <span class="sub">${esc(i.act||'Opponent TBC')}</span><br><span class="sub">${posLabel(i)}${i.cp?' · <span class="tag">CP</span>':''}</span></div>`;
       };
+      const fr = freeSl.find(f=>f.surface===c.surf && f.slot===s.id);
+      const freeBlk = (left, width) => {
+        const lab = freeLabel(fr.free), fits = freeFits(fr.free);
+        return `<div class="blk free" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px)"
+          title="Space available: ${lab}${fits?' · '+esc(fits):''}"><b>Free · ${lab}</b><span class="sub">${esc(fits)}</span></div>`;
+      };
+      if (fr && fr.empty) h += freeBlk(0, 100);
       inSlot.filter(i=>i.cols.length>1).forEach(i => { h += place(i, 0, 100); });
       for (const half of [0,1]){
-        const list = inSlot.filter(i=>i.cols.length===1 && i.cols[0]===half), w = 50/Math.max(list.length,1);
+        const list = inSlot.filter(i=>i.cols.length===1 && i.cols[0]===half), withFree = fr && !fr.empty && fr.freeHalf===half && !inSlot.some(i=>i.cols.length>1);
+        const w = 50/Math.max(list.length + (withFree?1:0), 1);
         list.forEach((i,k) => { h += place(i, half*50 + k*w, w); });
+        if (withFree) h += freeBlk(half*50 + list.length*w, w);
       }
     }
     for (const t of c.trs){                                           // weekly training sessions
@@ -755,7 +791,7 @@ function render(){
     (M.trainOver.length?`<span class="chip static bad">${M.trainOver.length} training clash${M.trainOver.length>1?'es':''}</span>`:'') +
     (DAYS.some(bwOn)?`<span class="chip static bad">Bad weather: ${DAYS.filter(bwOn).map(d=>d[0].toUpperCase()+d.slice(1)).join(', ')}</span>`:'');
   let h = '';
-  const dayBlock = d => `${dayHead(d)}${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${roomGrid(M,d)}${resourceGrid(M,d)}`;
+  const dayBlock = d => `${dayHead(d)}${dayStrip(M,d)}<div class="gridwrap">${dayGrid(M,d)}</div>${freeKey(M,d)}${roomGrid(M,d)}${resourceGrid(M,d)}`;
   if (S.view==='day') h = dayBlock(S.day);
   else if (S.view==='weekend') { const ds = DAYS.filter(d=>dayHasContent(M,d)||bwOn(d)); h = ds.length ? ds.map(dayBlock).join('') : `<div class="panel">Nothing scheduled this week.</div>`; }
   else if (S.view==='message') h = messageView(M);
