@@ -54,6 +54,17 @@ def get_values(sess, sheet_id, rng, label):
               params={'valueRenderOption': 'FORMATTED_VALUE'})
     return r.json().get('values', [])
 
+def get_values_optional(sess, sheet_id, rng, label):
+    """Like get_values, but returns None when the tab does not exist (Google answers 400 for an unknown tab name)."""
+    try:
+        r = sess.get(f'{SHEETS}/{sheet_id}/values/{quote(rng, safe="")}', params={'valueRenderOption': 'FORMATTED_VALUE'}, timeout=60)
+    except Exception as e:
+        sys.exit(f'FAILED: could not reach Google for {label} ({type(e).__name__}: {e})')
+    if r.status_code == 400: return None
+    if r.status_code != 200:
+        sys.exit(f'FAILED: Google returned HTTP {r.status_code} for {label} (is the sheet shared with the service account?)')
+    return r.json().get('values', [])
+
 def clear_values(sess, sheet_id, rng, label):
     _call(sess, 'post', f'{SHEETS}/{sheet_id}/values/{quote(rng, safe="")}:clear', f'{label} ({rng})', json={})
 

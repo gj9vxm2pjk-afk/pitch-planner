@@ -12,7 +12,7 @@ Needs a service account with Editor access to the new sheet (see gsheets.py).
 import csv, datetime, io, sys
 import gsheets, migrate_grid
 
-HEAD = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Changing room', 'Notes']
+HEAD = ['Date', 'Team', 'Type', 'Opponent', 'Venue', 'Status', 'Competition', 'Car park duty', 'Notes']
 MAX_DROP = 0.2
 
 def pad(rows, n):

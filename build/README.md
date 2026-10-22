@@ -23,7 +23,7 @@ If the run fails, it exits non-zero and leaves the previous outputs untouched.
 The sheet IDs are in `SHEET_IDS` at the top of `refresh.py`.
 
 ## Table-format sheet and the grid sync
-`sync_tables.py` copies the old grid sheet into the new one-row-per-fixture sheet; `FIXTURES_FEED=table python3 refresh.py` builds the page from it. See `SHEET_TEMPLATE.md` for the sheet layout and the cutover steps. `gsheets.py` holds the sheet IDs and the Google access code shared by both scripts. Sync needs the service account to have write access (Editor) to the new sheet only.
+`sync_tables.py` copies the old grid sheet into the new one-row-per-fixture sheet; `FIXTURES_FEED=table python3 refresh.py` builds the page from it. See `SHEET_TEMPLATE.md` for the sheet layout and the cutover steps. The optional **Seniors** tab (senior men's fixtures with kick-off times) is read by `refresh.py` through the Sheets API; see `SHEET_TEMPLATE.md`. `gsheets.py` holds the sheet IDs and the Google access code shared by both scripts. Sync needs the service account to have write access (Editor) to the new sheet only.
 
 ## Manual fallback
 
