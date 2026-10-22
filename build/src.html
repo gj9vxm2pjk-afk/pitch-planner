@@ -201,6 +201,8 @@ const CONFIG = {
   // A fixture with a kick-off time (the senior men's teams) holds its pitch from KO_WINDOW.before minutes before kick-off to
   // KO_WINDOW.after minutes after it; the changing room then starts when that window ends.
   KO_WINDOW: { before: 60, after: 110 },
+  // Groups that never do car park duty: any car park flag in the sheet for these teams is ignored and no car park line is shown.
+  NO_CAR_PARK: ['WOMEN', 'MEN'],
   // Who picks a changing room first (higher first). Everything not listed ranks by age group, as before.
   SENIORITY: { "Men's 1st XV": 1000, '1st XV': 999, 'Vikings': 300, 'Rangers': 299, 'Vets': 298 },
   // Mini sizes for the listed teams (these override the sizes above and the Config tab): a third of a pitch for training and
@@ -503,7 +505,8 @@ function modelFor(sat){
   for (const it of DATA.items){
     const day = dayKeyFor(it.date, sat); if (!day) continue;
     const rule = paddockRule(it, day) ? CONFIG.PADDOCK_RESERVED.find(r => r.team===it.team && r.day===day) : null;
-    items.push({...it, day, slot: slotIdFor(it), frac: fracFor(it), ...(rule ? {surface:'', paddock:true} : {})});
+    const noCp = CONFIG.NO_CAR_PARK.includes(it.group);
+    items.push({...it, day, slot: slotIdFor(it), frac: fracFor(it), cp: it.cp && !noCp, noCp, ...(rule ? {surface:'', paddock:true} : {})});
     if (rule && !paddockRes.some(b=>b.team===it.team && b.day===day)){
       const sl = slotById(rule.slot);
       paddockRes.push({date: it.date, start: sl.s, end: sl.e, resource: 'Paddock', rawRes: 'Paddock', team: it.team, notes: 'Reserved: nobody else can book the paddock then', bad: false, day, reserved: true});
@@ -895,7 +898,7 @@ function msgTeamLines(i){
   const p = [`Pitch: ${posLabel(i)} (${sizeLabel(i)})${i.sharedWith.length ? ', shared with ' + i.sharedWith.map(o=>o.team).join(', ') : ''}`];
   if (i.over) p.push('pitch to be confirmed');
   if (i.room !== undefined) p.push(i.room==null ? 'Changing room: none free, please speak to me' : `Changing room: Room ${i.room}${i.kind==='match' ? (i.roomAway!=null ? ` (visitors: Room ${i.roomAway})` : ' (visitors: no room free, please speak to me)') : ''} (from about ${fmtT(slot.e)})`);
-  p.push(i.cp ? 'Car park: your team is marshalling' : 'Car park: not on duty');
+  if (!i.noCp) p.push(i.cp ? 'Car park: your team is marshalling' : 'Car park: not on duty');
   return [`${head}${extra}`, `   ${t.join(' | ')}`, `   ${p.join(' | ')}`];
 }
 function buildWeekendMessage(M){

@@ -14,7 +14,7 @@ One row per team per date. Header row exactly as below (order doesn't matter, na
 | Venue | Where | Home grass, Home AGP, Away (blank for training with no pitch, festivals elsewhere, breaks) |
 | Status | How firm it is | Confirmed, Provisional, Requested (blank counts as Confirmed) |
 | Competition | League, Cup, Friendly, County... | Optional |
-| Car park duty | `Yes` if the team is marshalling the car park that day (the old "CP" column) | Yes / blank |
+| Car park duty | `Yes` if the team is marshalling the car park that day (the old "CP" column). Senior women's and men's teams never do car park duty; any `Yes` for them is ignored | Yes / blank |
 | Notes | Anything else, e.g. "moved from Sat" | Free text |
 
 Rules the app applies: a bad date or a missing team stops the refresh with a message naming the row; Provisional and Requested rows show as Unconfirmed; Home grass uses the grass pitch and Home AGP the AGP; Away rows never use a pitch.
