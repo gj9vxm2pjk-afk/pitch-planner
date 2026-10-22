@@ -37,7 +37,11 @@ header.brand{display:flex;align-items:center;gap:var(--s3);min-height:52px;paddi
 header.brand .crest{height:34px;width:auto;flex:none;background:#fff;border-radius:50%;padding:2px}
 header.brand h1{margin:0;font-size:1.02rem;font-weight:600;letter-spacing:.01em;line-height:1.2}
 header.brand .club{font:inherit;font-weight:400;opacity:.85;margin-right:6px;text-transform:none;letter-spacing:0;color:inherit}
-@media (max-width:520px){header.brand .club{display:none}header.brand .status{font-size:.72rem}}
+@media (max-width:520px){header.brand .club{display:none}header.brand .status{display:none}header.brand .reqlink{font-size:.78rem;padding:4px 10px}}
+header.brand .reqlink{margin-left:auto;color:var(--brand-ink);font-size:.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:5px 12px;white-space:nowrap}
+header.brand .reqlink:hover{background:rgba(255,255,255,.15)}
+header.brand .reqlink+.status{margin-left:var(--s3)}
+body.tv .reqlink{display:none}
 header.brand .status{margin-left:auto;white-space:nowrap;color:var(--brand-ink);opacity:.85;font-size:.78rem}
 .banner{margin:var(--s2) var(--s4);padding:var(--s2) var(--s3);border-radius:var(--r);font-size:.88rem;background:color-mix(in srgb,var(--danger) 12%,var(--surface));border:1px solid var(--danger)}
 .banner.info{background:var(--warn-bg);border-color:transparent;color:var(--warn-ink)}
@@ -157,6 +161,7 @@ body.tv .bar, body.tv .days{display:none}
 <header class="brand">
   <img class="crest" src="__CREST__" alt="Whitley Bay Rockcliff RFC crest">
   <h1><span class="club">Whitley Bay Rockcliff RFC</span>Pitch Planner</h1>
+  <a class="reqlink" id="reqlink" target="_blank" rel="noopener" hidden>Request a change</a>
   <span class="status" id="status" role="status"></span>
 </header>
 <div id="banners"></div>
@@ -208,6 +213,7 @@ const CONFIG = {
   TRAINING_CSV_URL: '',
   BOOKINGS_CSV_URL: '',
   SENIORS_CSV_URL: '',
+  REQUEST_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSceNwcRr2E8jN2cSxZuPcuwLcgjZMypCZYPqkDyLyANCvviQg/viewform',   // "Request a change" link ('' hides it)
   MESSAGE_SIGNOFF: '[Coordinator name]',   // used in the weekend message
   ROOM_CHANGE_MIN: 30,
   ROOM_TURNAROUND_MIN: 30,
@@ -840,6 +846,7 @@ function render(){
   $('#banners').innerHTML =
     (ERROR?`<div class="banner">${esc(ERROR)}</div>`:'') +
     (DATA.sample && !SNAPSHOT_DATE ? `<div class="banner info">Showing sample data. Set <code>FIXTURES_CSV_URL</code> in CONFIG to read the club sheet live.</div>` : '');
+  const rl = $('#reqlink'); rl.hidden = !CONFIG.REQUEST_FORM_URL; if (CONFIG.REQUEST_FORM_URL) rl.href = CONFIG.REQUEST_FORM_URL;
   document.querySelectorAll('#viewSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
   const days = DAYS.filter(d=>dayHasContent(M,d)||bwOn(d));
   if (days.length && !days.includes(S.day)) S.day = days[0];
