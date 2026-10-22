@@ -22,8 +22,8 @@ ALIAS = {
     'north allerton': 'Northallerton', 'horden': 'Peterlee & Horden', 'peterlee': 'Peterlee & Horden',
     'hartlepool rovers': 'Hartlepool Rovers', 'poppy sword consett': 'Consett',
 }
-# names that look like a typo or a one-off: shown in the Notes column
-SUSPECT = {'Blyton': 'possible typo (Blyth?)', 'Creighton': 'check the spelling (Crichton? Creighton?)'}
+# names that look like a typo or a one-off: shown in the Notes column (Blyton and Creighton checked with the club coordinator: both fine)
+SUSPECT = {}
 # whole labels that are events, training or admin, not clubs (regex, matched on the lower-case raw text)
 NOT_CLUB = re.compile(r'fest|cup|league|leag |training|train\b|paddock|tour\b|swap|moved|game request|friendly|fnl|^tour$|second stage|joint')
 # words/brackets that only describe the fixture, removed before the club name is read
