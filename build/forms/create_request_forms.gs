@@ -1,195 +1,170 @@
 /**
- * WBR Pitch Planner: request / modify / cancel a session.
+ * WBR Pitch Planner: request, modify or cancel a session.
  *
- * The form's dropdowns come from the club's table sheet (WBR Fixtures 26/27): teams from the Teams tab, and for modify and cancel
- * the team's upcoming fixtures from the Fixtures tab (and the Seniors tab if it exists). Type, venue and session time use the same
- * fixed values as the sheet's own dropdowns (see validate_table.py).
+ * Coaches and managers start from the Pitch Planner page. "Request change" on a session opens this form with the team, date,
+ * venue and session time already filled in (see REQUEST_ENTRIES in build/src.html), so they only pick what they want to do, add a
+ * note and give their name. The request is emailed to the leader of that team's group (Minis, Junior Boys or Junior Girls) and
+ * copied to the coordinator. Women's and senior teams are not part of this yet.
  *
- * First time (about 2 minutes), signed in as the club coordinator, who must be able to open the table sheet:
+ * The Team dropdown comes from the Teams tab of the club's table sheet. Type, venue and session time use the same fixed values as
+ * the sheet's own dropdowns (validate_table.py).
+ *
+ * Set up (about 5 minutes), signed in as the club coordinator, who must be able to open the table sheet and edit the form:
  *  1. Go to https://script.google.com and press New project.
  *  2. Delete the sample code, paste this whole file, press Save.
- *  3. Edit EDITORS below (the people who approve changes).
- *  4. Press Run (function createForms). Approve the permission prompts.
- *  5. Open View > Logs: it prints the form link to share and the editor link.
- *  6. Press Run (function installWeeklyRefresh) so the dropdowns follow the sheet.
+ *  3. Fill in LEADERS and COORDINATOR below.
+ *  4. Press Run > refreshForm. Approve the permission prompts. This replaces the form's questions and keeps its link.
+ *  5. Open View > Logs. It prints REQUEST_ENTRIES: paste that line into CONFIG in build/src.html so the page can pre-fill the form.
+ *  6. Press Run > installRouting. This adds the Group, Leader, Status columns to the responses sheet and the email trigger.
+ *  7. Press Run > installWeeklyRefresh so the Team dropdown follows the sheet.
  *
- * To keep the form link you already share, do not run createForms. Put the existing form's ID (the long code in its edit link,
- * https://docs.google.com/forms/d/<ID>/edit) in FORM_ID and run refreshForm. That replaces the questions and keeps the link and
- * the responses. Editors and the email notification stay as they are.
- *
- * Run refreshForm by hand after a big change to the fixtures. The weekly refresh does it for you.
+ * To start a new form instead, leave FORM_ID blank and run createForms (then steps 5-7).
  */
-const EDITORS = ['coordinator@example.com'];            // <-- replace with the 2-3 editors' email addresses
 const FORM_ID = '1MjbGzPncwrqyAV2JlS5-YBzRgY5ufTX3pJraBa495HY';   // existing form to update; leave blank for createForms to make a new one
 const TABLE_SHEET_ID = '1tyHepQWdOvekFNW3gSeV_8pICxETJMfHZktI7c6tOCY';   // WBR Fixtures 26/27 (table)
+const COORDINATOR = 'coordinator@example.com';          // <-- copied on every request; also receives any group with no leader set
+const LEADERS = {                                        // <-- who gets requests for each group
+  'MINIS':        { name: 'Minis leader',         email: '' },
+  'JUNIOR BOYS':  { name: 'Junior Boys leader',   email: '' },
+  'JUNIOR GIRLS': { name: 'Junior Girls leader',  email: '' }
+};
+const GROUPS = Object.keys(LEADERS);                    // only these groups appear in the form
 
-// Same values as the sheet's dropdowns (validate_table.py). Breaks are not sessions, so they are not offered.
+// Same values as the sheet's dropdowns (validate_table.py)
+const ACTIONS = ['Modify this session', 'Cancel this session', 'Request a new session'];
 const TYPES = ['Match', 'Training', 'Pre-season', 'Indoors', 'Festival', 'Other'];
 const VENUES = ['Home grass', 'Home AGP', 'Away'];
 const SESSION_TIMES = ['09:00–10:30', '10:30–12:30', '12:30–15:00'];
-const CHANGES = ['Date', 'Session time', 'Venue', 'Opponent', 'Car park duty', 'Other'];
 
-const REQUEST = 'Request a session';
-const MODIFY = 'Modify a session';
-const CANCEL = 'Cancel a session';
+const T = {                                              // question titles (the page's REQUEST_ENTRIES map to these)
+  name: 'Your name', team: 'Team', action: 'What do you want to do?', date: 'Date of the session',
+  time: 'Session time', venue: 'Venue', type: 'Type', opp: 'Opponent', note: 'What should change, or any other detail?'
+};
 
 function createForms() {
   const form = FormApp.create('WBR Pitch Planner: request, modify or cancel a session');
-  form.setCollectEmail(true).setConfirmationMessage('Thanks. The coordinator will confirm once it is in the planner.');
-  form.setProgressBar(true);
   buildQuestions(form);
-
-  // Responses go to their own sheet, shared with the editors only
   const ss = SpreadsheetApp.create('WBR Pitch Planner: session requests');
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
   SpreadsheetApp.flush();
-  const sheet = ss.getSheets().filter(function (s) { return /Form responses/.test(s.getName()); })[0] || ss.getSheets()[0];
-  const lastCol = sheet.getLastColumn();
-  sheet.getRange(1, lastCol + 1, 1, 2).setValues([['Status', 'Handled by']]).setFontWeight('bold');
-  sheet.getRange(2, lastCol + 1, 500, 1).setDataValidation(
-    SpreadsheetApp.newDataValidation().requireValueInList(['New', 'Approved', 'Done', 'Rejected'], true).build());
-  sheet.setFrozenRows(1);
-
-  // Only the editors can see responses or the sheet; an email goes to them on every submission
-  EDITORS.forEach(function (e) { ss.addEditor(e); form.addEditor(e); });
-  ScriptApp.newTrigger('notifyEditors').forSpreadsheet(ss).onFormSubmit().create();
-  const props = PropertiesService.getScriptProperties();
-  props.setProperty('EDITORS', EDITORS.join(','));
-  props.setProperty('FORM_ID', form.getId());
-
-  Logger.log('Share this link with managers: ' + form.getPublishedUrl());
+  PropertiesService.getScriptProperties().setProperty('FORM_ID', form.getId());
+  Logger.log('Share this link: ' + form.getPublishedUrl());
   Logger.log('Edit the form: ' + form.getEditUrl());
-  Logger.log('Requests sheet (editors only): ' + ss.getUrl());
+  Logger.log('Responses sheet: ' + ss.getUrl());
+  Logger.log('Now run installRouting and installWeeklyRefresh.');
 }
 
-/** Replaces the form's questions with ones built from today's sheet. Keeps the link, the responses and the settings. */
+/** Replaces the form's questions with ones built from today's sheet. Keeps the link and the responses. */
 function refreshForm() {
-  const id = FORM_ID || PropertiesService.getScriptProperties().getProperty('FORM_ID');
-  if (!id) throw new Error('Set FORM_ID at the top of the script, or run createForms first.');
-  const form = FormApp.openById(id);
+  const form = openForm();
   buildQuestions(form);
   Logger.log('Form refreshed: ' + form.getPublishedUrl());
 }
 
-/** Runs refreshForm every Monday morning so new fixtures appear and past ones drop off. */
+/** Adds Group, Leader, Status, Handled by to the responses sheet and the email trigger (safe to run again). */
+function installRouting() {
+  const form = openForm();
+  if (!form.getDestinationId()) throw new Error('The form has no responses sheet. In the form: Responses > Link to Sheets.');
+  const ss = SpreadsheetApp.openById(form.getDestinationId());
+  const sheet = responsesSheet(ss);
+  const head = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  ['Group', 'Leader', 'Status', 'Handled by'].forEach(function (h) {
+    if (head.indexOf(h) < 0) { sheet.getRange(1, sheet.getLastColumn() + 1).setValue(h).setFontWeight('bold'); }
+  });
+  const statusCol = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].indexOf('Status') + 1;
+  sheet.getRange(2, statusCol, 500, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(['New', 'Approved', 'Done', 'Rejected'], true).build());
+  sheet.setFrozenRows(1);
+  PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
+  ScriptApp.getProjectTriggers().filter(function (t) { return t.getHandlerFunction() === 'routeRequest'; })
+    .forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('routeRequest').forSpreadsheet(ss).onFormSubmit().create();
+  [COORDINATOR].concat(GROUPS.map(function (g) { return LEADERS[g].email; })).filter(String)
+    .forEach(function (e) { try { ss.addEditor(e); } catch (x) {} });
+  Logger.log('Routing installed. Responses sheet: ' + ss.getUrl());
+}
+
+/** Runs refreshForm every Monday morning so new teams appear. */
 function installWeeklyRefresh() {
   ScriptApp.getProjectTriggers().filter(function (t) { return t.getHandlerFunction() === 'refreshForm'; })
     .forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('refreshForm').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(6).create();
 }
 
+function openForm() {
+  const id = FORM_ID || PropertiesService.getScriptProperties().getProperty('FORM_ID');
+  if (!id) throw new Error('Set FORM_ID at the top of the script, or run createForms first.');
+  return FormApp.openById(id);
+}
+
+function responsesSheet(ss) {
+  return ss.getSheets().filter(function (s) { return /Form responses/.test(s.getName()); })[0] || ss.getSheets()[0];
+}
+
 function buildQuestions(form) {
-  const data = readSheet();
+  const teamGroup = readTeams();
+  const teams = Object.keys(teamGroup);
   form.getItems().forEach(function (item) { form.deleteItem(item); });
+  form.setCollectEmail(false).setProgressBar(false).setShowLinkToRespondAgain(false);
+  form.setTitle('WBR Pitch Planner: change a session');
+  form.setDescription('Opened from a session in the Pitch Planner? Most of this is filled in already. Check it, say what you want to do, ' +
+    'and send. Your group leader and the coordinator get the request. Please send changes by Thursday noon for the weekend; ' +
+    'for anything urgent, message your group leader directly.');
+  form.setConfirmationMessage('Thanks. Your group leader and the coordinator have the request and will come back to you.');
 
-  form.setDescription('Use this to request a new session, change an existing one, or cancel one. The coordinator will confirm by reply. ' +
-    'Please send changes by Thursday noon for the weekend; for anything urgent, message the coordinator on WhatsApp. ' +
-    'For a block of weeks or a whole age group, send one request and say so in the reason.');
+  const ids = {};
+  ids.name = form.addTextItem().setTitle(T.name).setRequired(true).getId();
+  ids.team = form.addListItem().setTitle(T.team).setChoiceValues(teams).setRequired(true).getId();
+  ids.action = form.addMultipleChoiceItem().setTitle(T.action).setChoiceValues(ACTIONS).setRequired(true).getId();
+  ids.date = form.addDateItem().setTitle(T.date).setHelpText('For a new session, the date you would like.').setRequired(true).getId();
+  ids.time = form.addListItem().setTitle(T.time).setChoiceValues(SESSION_TIMES).getId();
+  ids.venue = form.addListItem().setTitle(T.venue).setChoiceValues(VENUES).getId();
+  ids.type = form.addListItem().setTitle(T.type).setChoiceValues(TYPES).setHelpText('Needed for a new session.').getId();
+  ids.opp = form.addTextItem().setTitle(T.opp).setHelpText('Matches only.').getId();
+  ids.note = form.addParagraphTextItem().setTitle(T.note).setHelpText('For example: move to 10:30–12:30 on the AGP. Say why if you can.').getId();
 
-  form.addTextItem().setTitle('Your name').setRequired(true);
-  const action = form.addMultipleChoiceItem().setTitle('What do you want to do?').setRequired(true);
-
-  // Request: a new session or fixture
-  const request = form.addPageBreakItem().setTitle(REQUEST);
-  form.addListItem().setTitle('Team').setChoiceValues(data.teams).setRequired(true);
-  form.addDateItem().setTitle('Date').setRequired(true);
-  form.addListItem().setTitle('Type').setChoiceValues(TYPES).setRequired(true);
-  form.addListItem().setTitle('Venue').setChoiceValues(VENUES).setRequired(true);
-  form.addListItem().setTitle('Session time').setChoiceValues(SESSION_TIMES).setHelpText('Leave blank if you are not sure or it is a match with a set kick-off.');
-  form.addTextItem().setTitle('Opponent (matches)');
-  form.addParagraphTextItem().setTitle('Reason / anything else we should know');
-  request.setGoToPage(FormApp.PageNavigationType.SUBMIT);
-
-  // Modify: pick the team, then one of its upcoming sessions, then say what changes
-  const modifyTeam = form.addPageBreakItem().setTitle(MODIFY);
-  const modifyPick = form.addMultipleChoiceItem().setTitle('Which team? (' + MODIFY.toLowerCase() + ')').setRequired(true);
-  const modifyTeamPages = data.teamsWithFixtures.map(function (team) {
-    const page = form.addPageBreakItem().setTitle(team + ': pick the session to change');
-    form.addListItem().setTitle('Modify: which ' + team + ' session?').setChoiceValues(data.fixtures[team]).setRequired(true);
-    return page;
-  });
-  const modifyDetails = form.addPageBreakItem().setTitle('What needs to change?');
-  form.addCheckboxItem().setTitle('What needs to change?').setChoiceValues(CHANGES).setRequired(true);
-  form.addDateItem().setTitle('New date (if changing)');
-  form.addListItem().setTitle('New session time (if changing)').setChoiceValues(SESSION_TIMES);
-  form.addListItem().setTitle('New venue (if changing)').setChoiceValues(VENUES);
-  form.addTextItem().setTitle('New opponent (if changing)');
-  form.addParagraphTextItem().setTitle('Reason / anything else we should know');
-  modifyDetails.setGoToPage(FormApp.PageNavigationType.SUBMIT);
-
-  // Cancel: pick the team, then one of its upcoming sessions, then the reason
-  const cancelTeam = form.addPageBreakItem().setTitle(CANCEL);
-  const cancelPick = form.addMultipleChoiceItem().setTitle('Which team? (' + CANCEL.toLowerCase() + ')').setRequired(true);
-  const cancelTeamPages = data.teamsWithFixtures.map(function (team) {
-    const page = form.addPageBreakItem().setTitle(team + ': pick the session to cancel');
-    form.addListItem().setTitle('Cancel: which ' + team + ' session?').setChoiceValues(data.fixtures[team]).setRequired(true);
-    return page;
-  });
-  const cancelDetails = form.addPageBreakItem().setTitle('Why is it being cancelled?');
-  form.addParagraphTextItem().setTitle('Reason for cancelling').setRequired(true);
-
-  // Wire the navigation now that every page exists
-  action.setChoices([action.createChoice(REQUEST, request), action.createChoice(MODIFY, modifyTeam), action.createChoice(CANCEL, cancelTeam)]);
-  modifyPick.setChoices(data.teamsWithFixtures.map(function (t, i) { return modifyPick.createChoice(t, modifyTeamPages[i]); }));
-  cancelPick.setChoices(data.teamsWithFixtures.map(function (t, i) { return cancelPick.createChoice(t, cancelTeamPages[i]); }));
-  modifyTeamPages.forEach(function (p) { p.setGoToPage(modifyDetails); });
-  cancelTeamPages.forEach(function (p) { p.setGoToPage(cancelDetails); });
+  // Paste this line into CONFIG in build/src.html: the page uses it to pre-fill the form
+  Logger.log('REQUEST_ENTRIES: ' + JSON.stringify(ids));
+  Logger.log('Teams offered: ' + teams.length + ' (' + GROUPS.join(', ') + ')');
 }
 
-/** Teams and each team's upcoming sessions, read from the table sheet. */
-function readSheet() {
-  const ss = SpreadsheetApp.openById(TABLE_SHEET_ID);
-  const tz = ss.getSpreadsheetTimeZone();
-  const today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
-
-  const teams = [];
-  const teamsTab = ss.getSheetByName('Teams');
-  if (!teamsTab) throw new Error('The table sheet has no Teams tab.');
-  teamsTab.getRange(2, 1, Math.max(teamsTab.getLastRow() - 1, 1), 1).getValues().forEach(function (r) {
-    const t = String(r[0]).trim();
-    if (t && teams.indexOf(t) < 0) teams.push(t);
-  });
-
-  const fixtures = {};
-  ['Fixtures', 'Seniors'].forEach(function (name) {
-    const tab = ss.getSheetByName(name);
-    if (!tab || tab.getLastRow() < 2) return;
-    const rows = tab.getDataRange().getValues();
-    const col = {};
-    rows[0].forEach(function (h, i) { col[String(h).trim()] = i; });
-    if (col['Date'] === undefined || col['Team'] === undefined) return;
-    rows.slice(1).forEach(function (r) {
-      const team = String(r[col['Team']]).trim();
-      const type = String(r[col['Type']] || '').trim();
-      const d = r[col['Date']];
-      if (!team || !d || type === 'Break') return;
-      const iso = d instanceof Date ? Utilities.formatDate(d, tz, 'yyyy-MM-dd') : String(d).trim().slice(0, 10);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || iso < today) return;
-      const pretty = Utilities.formatDate(new Date(iso + 'T12:00:00'), tz, 'EEE d MMM');
-      const get = function (k) { return col[k] === undefined ? '' : String(r[col[k]] || '').trim(); };
-      const opp = get('Opponent');
-      const bits = [pretty, type + (opp ? ' v ' + opp : ''), get('Venue'), get('Session time') || get('Kick-off')].filter(String);
-      if (get('Status') === 'Provisional') bits.push('(provisional)');
-      (fixtures[team] = fixtures[team] || []).push({ iso: iso, label: bits.join(' – ') });
-      if (teams.indexOf(team) < 0) teams.push(team);
-    });
-  });
-
+/** Team -> group for the groups that use this form, read from the Teams tab (columns Team, Group). */
+function readTeams() {
+  const tab = SpreadsheetApp.openById(TABLE_SHEET_ID).getSheetByName('Teams');
+  if (!tab) throw new Error('The table sheet has no Teams tab.');
+  const rows = tab.getDataRange().getValues();
+  const head = rows[0].map(function (h) { return String(h).trim().toLowerCase(); });
+  const ti = head.indexOf('team'), gi = head.indexOf('group');
+  if (ti < 0 || gi < 0) throw new Error('The Teams tab needs Team and Group columns.');
   const out = {};
-  Object.keys(fixtures).forEach(function (team) {
-    const seen = {};
-    out[team] = fixtures[team].sort(function (a, b) { return a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0; })
-      .map(function (f) {          // list choices must be unique: tell apart two identical rows
-        seen[f.label] = (seen[f.label] || 0) + 1;
-        return seen[f.label] > 1 ? f.label + ' (' + seen[f.label] + ')' : f.label;
-      });
+  rows.slice(1).forEach(function (r) {
+    const team = String(r[ti]).trim(), group = String(r[gi]).trim().toUpperCase();
+    if (team && GROUPS.indexOf(group) >= 0) out[team] = group;
   });
-  return { teams: teams, teamsWithFixtures: teams.filter(function (t) { return out[t]; }), fixtures: out };
+  PropertiesService.getScriptProperties().setProperty('TEAM_GROUPS', JSON.stringify(out));
+  return out;
 }
 
-function notifyEditors(e) {
-  const to = PropertiesService.getScriptProperties().getProperty('EDITORS');
+/** On each response: fill in Group and Leader on its row, and email the leader (copying the coordinator). */
+function routeRequest(e) {
+  const props = PropertiesService.getScriptProperties();
+  const teamGroup = JSON.parse(props.getProperty('TEAM_GROUPS') || '{}');
+  const v = function (k) { return ((e.namedValues[k] || [''])[0] || '').trim(); };
+  const group = teamGroup[v(T.team)] || '';
+  const leader = LEADERS[group] || { name: 'Coordinator', email: '' };
+
+  const sheet = e.range.getSheet();
+  const head = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const put = function (h, val) { const c = head.indexOf(h); if (c >= 0) sheet.getRange(e.range.getRow(), c + 1).setValue(val); };
+  put('Group', group); put('Leader', leader.name); put('Status', 'New');
+
   const lines = Object.keys(e.namedValues).filter(function (k) { return e.namedValues[k].join('').trim(); })
     .map(function (k) { return k + ': ' + e.namedValues[k].join(' '); });
-  MailApp.sendEmail(to, 'Pitch Planner session request', lines.join('\n') + '\n\nUpdate the Status column in the Requests sheet once handled.');
+  const to = leader.email || COORDINATOR;
+  const subject = 'Pitch Planner: ' + v(T.action) + ' – ' + v(T.team) + ' – ' + v(T.date);
+  const body = lines.join('\n') + '\n\nSent to: ' + leader.name + (leader.email ? '' : ' (no email set, so sent to the coordinator)') +
+    '\nUpdate the Status column in the responses sheet once handled:\n' + sheet.getParent().getUrl();
+  const mail = { to: to, subject: subject, body: body };
+  if (to !== COORDINATOR) mail.cc = COORDINATOR;
+  MailApp.sendEmail(mail);
 }
