@@ -41,7 +41,10 @@ header.brand .club{font:inherit;font-weight:400;opacity:.85;margin-right:6px;tex
 header.brand .reqlink{margin-left:auto;color:var(--brand-ink);font-size:.82rem;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.5);border-radius:999px;padding:5px 12px;white-space:nowrap}
 header.brand .reqlink:hover{background:rgba(255,255,255,.15)}
 header.brand .reqlink+.status{margin-left:var(--s3)}
-body.tv .reqlink{display:none}
+body.tv .reqlink,body.tv .rq{display:none}
+.rq{font-size:.74rem;font-weight:600;color:var(--brand);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:var(--s2);white-space:nowrap}
+.rq:hover{background:var(--line)}
+.blk .rq{position:absolute;top:4px;right:4px;margin:0;background:rgba(255,255,255,.75);color:#16190f;border-color:rgba(0,0,0,.15);padding:0 6px;font-size:.7rem}
 header.brand .status{margin-left:auto;white-space:nowrap;color:var(--brand-ink);opacity:.85;font-size:.78rem}
 .banner{margin:var(--s2) var(--s4);padding:var(--s2) var(--s3);border-radius:var(--r);font-size:.88rem;background:color-mix(in srgb,var(--danger) 12%,var(--surface));border:1px solid var(--danger)}
 .banner.info{background:var(--warn-bg);border-color:transparent;color:var(--warn-ink)}
@@ -214,6 +217,9 @@ const CONFIG = {
   BOOKINGS_CSV_URL: '',
   SENIORS_CSV_URL: '',
   REQUEST_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSceNwcRr2E8jN2cSxZuPcuwLcgjZMypCZYPqkDyLyANCvviQg/viewform',   // "Request a change" link ('' hides it)
+  // Entry ids of the request form's questions, so "Change" on a session opens the form already filled in. Paste the
+  // REQUEST_ENTRIES line that forms/create_request_forms.gs logs. Empty = the link opens a blank form.
+  REQUEST_ENTRIES: {name:1842050881,team:1522458039,action:220303195,date:588348031,time:1791596378,venue:92635444,type:1753458358,opp:74069947,note:95473723},
   MESSAGE_SIGNOFF: '[Coordinator name]',   // used in the weekend message
   ROOM_CHANGE_MIN: 30,
   ROOM_TURNAROUND_MIN: 30,
@@ -251,7 +257,7 @@ const SAMPLE_CSV = "Date,Team,Type,Opponent,Venue,Status,Competition,Car park du
 const TRAINING_CSV = "Day,Team,Start,End,Resource,Share,Weeks,Notes\r\nTue,U12 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U12 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U14 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U14 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U16 Girls,17:30,18:55,Grass,Half,A,Time assumed to match the U12/U14 Girls - please check\r\nTue,U16 Girls,17:30,18:55,AGP,Half,B,Time assumed to match the U12/U14 Girls - please check\r\nTue,U18 Girls,18:00,18:55,Grass,Half,A,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:00,18:55,AGP,Half,B,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:55,19:30,Paddock,Full,All,";       // copy of the training schedule sheet (set by refresh.py)
 const SENIORS_CSV = "";         // copy of the Seniors tab (senior men's fixtures with kick-off times; set by refresh.py)
 const BOOKINGS_CSV = "Date,Start,End,Resource,Team,Notes\r\n11/10/2026,18:00,19:30,Adult Scrum Machine,EXAMPLE - delete this row,Resource must be one of: Paddock / Junior Scrum Machine / Adult Scrum Machine";      // copy of the paddock & scrum machine bookings sheet (set by refresh.py)
-const SNAPSHOT_DATE = "25 Oct 09:23";   // when the embedded sheet copy was taken (set by refresh.py)
+const SNAPSHOT_DATE = "25 Oct 11:16";   // when the embedded sheet copy was taken (set by refresh.py)
 
 /* ============================ UTIL ============================ */
 const $ = s => document.querySelector(s);
@@ -692,6 +698,19 @@ function freeFits(f){
   if (f >= m.match - 0.01) return 'room for ' + [...m.teams, ...others].join(', ');
   return f >= m.session - 0.01 ? 'room for ' + [...m.teams, ...others].join(', ') + ' (training, not a match)' : '';
 }
+// "Change" link on a session: opens the request form with the team, date, venue and session time filled in.
+// Only the groups the form routes to (minis and junior boys/girls) get one.
+const REQ_GROUPS = ['MINIS','JUNIOR BOYS','JUNIOR GIRLS'], REQ_VENUE = { grass:'Home grass', agp:'Home AGP' }, REQ_TIMES = ['09:00–10:30','10:30–12:30','12:30–15:00'];
+function reqLink(team, group, day, surface, s, e){
+  const base = CONFIG.REQUEST_FORM_URL;
+  if (!base || !REQ_GROUPS.includes(group) || document.body.classList.contains('tv')) return '';
+  const E = CONFIG.REQUEST_ENTRIES || {}, p = new URLSearchParams({ usp:'pp_url' });
+  const set = (k, v) => { if (E[k] && v) p.set('entry.'+E[k], v); };
+  const t = `${fmtT(s)}–${fmtT(e)}`;
+  set('team', team); set('date', iso(addDays(S.sat, DAY_OFF[day]))); set('venue', REQ_VENUE[surface]);
+  if (REQ_TIMES.includes(t)) set('time', t);
+  return `<a class="rq" href="${esc(base + (base.includes('?') ? '&' : '?') + p)}" target="_blank" rel="noopener" title="Ask the ${esc(GROUP_LABEL[group] || group)} leader to change or cancel this session">Change</a>`;
+}
 const itemSub = i => (i.kind==='match' ? (i.act ? 'v '+i.act : 'Opponent TBC') : (i.act || 'Session'));
 function dayGrid(M, day){
   const items = M.items.filter(i=>i.day===day && i.surface && passes(i));
@@ -721,7 +740,7 @@ function dayGrid(M, day){
         return `<div class="blk ${i.over?'over':''}" style="top:${(s.s-t0)/60*hpx+1}px;height:${(s.e-s.s)/60*hpx-3}px;left:calc(${left}% + 2px);width:calc(${width}% - 4px);background:${colourFor(i.group)}"
           title="${esc(i.team)} · ${esc(itemSub(i))} · ${sizeLabel(i)} · ${pos}${sh?' · shares with '+i.sharedWith.map(o=>esc(o.team)).join(', '):''}">
           ${i.over?'<span class="tag">Over capacity</span>':''}<b>${esc(i.team)}${i.cp?'<span class="cp" title="Car park duty">P</span>':''}</b>
-          <span class="sub">${esc(itemSub(i))}</span></div>`;
+          <span class="sub">${esc(itemSub(i))}</span>${reqLink(i.team,i.group,day,i.surface,s.s,s.e)}</div>`;
       };
       const fr = freeSl.find(f=>f.surface===c.surf && f.slot===s.id);
       const freeBlk = (left, width, third) => {
@@ -789,11 +808,11 @@ function dayList(M, day){                                          // the same p
   let h = '';
   const slots = CONFIG.SLOTS.filter(s=>items.some(i=>i.slot===s.id) || free.some(f=>f.slot===s.id)).sort((a,b)=>a.s-b.s);
   for (const s of slots){
-    const rows = items.filter(i=>i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface) || a.cols[0]-b.cols[0]).map(i=>`<div class="li"><span class="dot" style="background:${colourFor(i.group)}"></span><span>${esc(i.team)} · ${esc(itemSub(i))}${i.cp?'<span class="cp" title="Car park duty">P</span>':''}${i.over?' <span class="bt">· Over capacity</span>':''}${i.roomClash?' <span class="bt">· No changing room</span>':''}</span><span class="where">${SURF[i.surface]}</span></div>`).join('');
+    const rows = items.filter(i=>i.slot===s.id).sort((a,b)=>a.surface.localeCompare(b.surface) || a.cols[0]-b.cols[0]).map(i=>`<div class="li"><span class="dot" style="background:${colourFor(i.group)}"></span><span>${esc(i.team)} · ${esc(itemSub(i))}${i.cp?'<span class="cp" title="Car park duty">P</span>':''}${i.over?' <span class="bt">· Over capacity</span>':''}${i.roomClash?' <span class="bt">· No changing room</span>':''}</span><span class="where">${SURF[i.surface]}</span>${reqLink(i.team,i.group,day,i.surface,slotById(i.slot).s,slotById(i.slot).e)}</div>`).join('');
     const fr = free.filter(f=>f.slot===s.id).map(f=>`<div class="li f"><span class="dot" style="border:1.5px dashed var(--muted)"></span><span>Free: ${freeLabel(f.free)}</span><span class="where">${SURF[f.surface]}</span></div>`).join('');
     h += `<div class="slot"><h3>${fmtT(s.s)}–${fmtT(s.e)}</h3>${rows}${fr}</div>`;
   }
-  if (trs.length) h += `<div class="slot"><h3>Training</h3>${trs.sort((a,b)=>a.ts-b.ts).map(t=>`<div class="li"><span class="dot" style="background:${colourFor(t.group)}"></span><span>${esc(t.team)} · ${fmtT(t.ts)}–${fmtT(t.te)}${t.over?' <span class="bt">· No space</span>':''}</span><span class="where">${SURF[t.surface]}</span></div>`).join('')}</div>`;
+  if (trs.length) h += `<div class="slot"><h3>Training</h3>${trs.sort((a,b)=>a.ts-b.ts).map(t=>`<div class="li"><span class="dot" style="background:${colourFor(t.group)}"></span><span>${esc(t.team)} · ${fmtT(t.ts)}–${fmtT(t.te)}${t.over?' <span class="bt">· No space</span>':''}</span><span class="where">${SURF[t.surface]}</span>${reqLink(t.team,t.group,day,t.surface,t.ts,t.te)}</div>`).join('')}</div>`;
   return h;
 }
 function dayKey(M, day){
