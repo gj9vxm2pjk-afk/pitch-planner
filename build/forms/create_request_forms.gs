@@ -20,7 +20,7 @@
  * Run refreshForm by hand after a big change to the fixtures. The weekly refresh does it for you.
  */
 const EDITORS = ['coordinator@example.com'];            // <-- replace with the 2-3 editors' email addresses
-const FORM_ID = '';                                      // existing form to update; leave blank for createForms to make a new one
+const FORM_ID = '1MjbGzPncwrqyAV2JlS5-YBzRgY5ufTX3pJraBa495HY';   // existing form to update; leave blank for createForms to make a new one
 const TABLE_SHEET_ID = '1tyHepQWdOvekFNW3gSeV_8pICxETJMfHZktI7c6tOCY';   // WBR Fixtures 26/27 (table)
 
 // Same values as the sheet's dropdowns (validate_table.py). Breaks are not sessions, so they are not offered.
