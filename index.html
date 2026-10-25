@@ -45,6 +45,8 @@ body.tv .reqlink,body.tv .rq{display:none}
 .rq{font-size:.74rem;font-weight:600;color:var(--brand);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:var(--s2);white-space:nowrap}
 .rq:hover{background:var(--line)}
 .blk .rq{position:absolute;top:4px;right:4px;margin:0;background:rgba(255,255,255,.75);color:#16190f;border-color:rgba(0,0,0,.15);padding:0 6px;font-size:.7rem}
+.foot{max-width:1040px;margin:0 auto;padding:0 var(--s4) 24px;color:var(--muted);font-size:.78rem}
+body.tv .foot{display:none}
 header.brand .status{margin-left:auto;white-space:nowrap;color:var(--brand-ink);opacity:.85;font-size:.78rem}
 .banner{margin:var(--s2) var(--s4);padding:var(--s2) var(--s3);border-radius:var(--r);font-size:.88rem;background:color-mix(in srgb,var(--danger) 12%,var(--surface));border:1px solid var(--danger)}
 .banner.info{background:var(--warn-bg);border-color:transparent;color:var(--warn-ink)}
@@ -182,6 +184,7 @@ body.tv .bar, body.tv .days{display:none}
 </div>
 <div class="days" id="daySeg" role="group" aria-label="Day"></div>
 <main id="main"></main>
+<p class="foot" id="foot" hidden>Anonymous usage counts only: no cookies, no names, no tracking across sites.</p>
 
 <script>
 /* ============================ CONFIG ============================
@@ -216,6 +219,7 @@ const CONFIG = {
   TRAINING_CSV_URL: '',
   BOOKINGS_CSV_URL: '',
   SENIORS_CSV_URL: '',
+  USAGE_URL: '',   // Apps Script web app that counts anonymous usage (see build/usage/); '' turns counting off
   REQUEST_FORM_URL: 'https://docs.google.com/forms/d/e/1FAIpQLSceNwcRr2E8jN2cSxZuPcuwLcgjZMypCZYPqkDyLyANCvviQg/viewform',   // "Request a change" link ('' hides it)
   // Entry ids of the request form's questions, so "Change" on a session opens the form already filled in. Paste the
   // REQUEST_ENTRIES line that forms/create_request_forms.gs logs. Empty = the link opens a blank form.
@@ -257,7 +261,7 @@ const SAMPLE_CSV = "Date,Team,Type,Opponent,Venue,Status,Competition,Car park du
 const TRAINING_CSV = "Day,Team,Start,End,Resource,Share,Weeks,Notes\r\nTue,U12 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U12 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U14 Girls,17:30,18:55,AGP,Half,A,\r\nTue,U14 Girls,17:30,18:55,Grass,Half,B,\r\nTue,U16 Girls,17:30,18:55,Grass,Half,A,Time assumed to match the U12/U14 Girls - please check\r\nTue,U16 Girls,17:30,18:55,AGP,Half,B,Time assumed to match the U12/U14 Girls - please check\r\nTue,U18 Girls,18:00,18:55,Grass,Half,A,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:00,18:55,AGP,Half,B,Moves to the paddock at 18:55\r\nTue,U18 Girls,18:55,19:30,Paddock,Full,All,";       // copy of the training schedule sheet (set by refresh.py)
 const SENIORS_CSV = "";         // copy of the Seniors tab (senior men's fixtures with kick-off times; set by refresh.py)
 const BOOKINGS_CSV = "Date,Start,End,Resource,Team,Notes\r\n11/10/2026,18:00,19:30,Adult Scrum Machine,EXAMPLE - delete this row,Resource must be one of: Paddock / Junior Scrum Machine / Adult Scrum Machine";      // copy of the paddock & scrum machine bookings sheet (set by refresh.py)
-const SNAPSHOT_DATE = "25 Oct 11:16";   // when the embedded sheet copy was taken (set by refresh.py)
+const SNAPSHOT_DATE = "25 Oct 16:23";   // when the embedded sheet copy was taken (set by refresh.py)
 
 /* ============================ UTIL ============================ */
 const $ = s => document.querySelector(s);
@@ -961,6 +965,7 @@ function messageView(M){
 function flash(btn, text){ const t = btn.dataset.label || (btn.dataset.label = btn.textContent); btn.textContent = text; clearTimeout(btn._t); btn._t = setTimeout(()=>{ btn.textContent = t; }, 2200); }
 async function copyWeekend(btn){
   const ta = $('#msgText'), text = ta ? ta.value : weekendText(modelFor(S.sat));
+  track('copy_message');
   try { await navigator.clipboard.writeText(text); flash(btn, 'Copied'); }
   catch(e){                                         // clipboard blocked: show the text selected so Ctrl/Cmd+C works
     if (S.view!=='message'){ S.view='message'; S.viewSet=true; render(); }
@@ -974,7 +979,7 @@ $('#main').addEventListener('click', e => {
 });
 $('#main').addEventListener('click', e => {
   const b = e.target.closest('[data-bw]');
-  if (b){ const d = iso(addDays(S.sat, DAY_OFF[b.dataset.bw])); S.bw.has(d) ? S.bw.delete(d) : S.bw.add(d); writeHash(); render(); return; }
+  if (b){ const d = iso(addDays(S.sat, DAY_OFF[b.dataset.bw])); S.bw.has(d) ? S.bw.delete(d) : (S.bw.add(d), track('bad_weather')); writeHash(); render(); return; }
   const l = e.target.closest('[data-bwlink]');
   if (l){ writeHash(); const url = location.href; (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=>flash(l,'Link copied')).catch(()=>flash(l,'Copy the address bar link')); }
 });
@@ -982,8 +987,19 @@ $('#main').addEventListener('input', e => {
   if (e.target.id==='msgText'){ S.drafts[draftKey()] = e.target.value; const r = document.querySelector('[data-reset]'); if (r) r.disabled = false; }
 });
 
+/* ============================ USAGE COUNTS ============================ */
+// Anonymous counts only: an event name goes to the club's own counter (build/usage/usage_endpoint.gs). Nothing identifies a person:
+// no cookie, no ID, no address. Each event is sent at most once per browser session, and nothing is sent if Do Not Track is on.
+const sentEvents = new Set();
+function track(name){
+  if (!CONFIG.USAGE_URL || sentEvents.has(name) || navigator.doNotTrack === '1') return;
+  sentEvents.add(name);
+  try { fetch(CONFIG.USAGE_URL, {method:'POST', mode:'no-cors', keepalive:true, body:new URLSearchParams({e:name})}).catch(()=>{}); } catch(e){}
+}
+if (CONFIG.USAGE_URL) $('#foot').hidden = false;
+
 /* ============================ EVENTS ============================ */
-$('#viewSeg').onclick = e => { const v=e.target.dataset.v; if(v){ S.view=v; S.viewSet=true; render(); } };
+$('#viewSeg').onclick = e => { const v=e.target.dataset.v; if(v){ S.view=v; S.viewSet=true; if (v==='message') track('tab_message'); render(); } };
 $('#daySeg').onclick = e => { const d=e.target.dataset.d; if(d){ S.day=d; S.dayPicked=true; render(); } };
 const shift = n => { S.sat=addDays(S.sat,n); S.dayPicked=false; autoDay(); render(); };
 $('#prev').onclick = () => shift(-7);
@@ -993,6 +1009,9 @@ $('#q').oninput = e => { S.q=e.target.value; render(); $('#q').focus(); };
 addEventListener('hashchange', () => { readHash(); render(); });
 
 readHash(); load();
+track(document.body.classList.contains('tv') ? 'tv' : compact() ? 'visit_phone' : 'visit_desktop');
+$('#reqlink').addEventListener('click', () => track('request_change'));
+$('#q').addEventListener('input', () => track('search'));
 setInterval(load, CONFIG.REFRESH_MINUTES*60000);
 setInterval(() => {                       // TV mode: cycle through weekend days that have pitch use
   if (!document.body.classList.contains('tv')) return;
