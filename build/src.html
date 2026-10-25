@@ -1011,6 +1011,7 @@ addEventListener('hashchange', () => { readHash(); render(); });
 readHash(); load();
 track(document.body.classList.contains('tv') ? 'tv' : compact() ? 'visit_phone' : 'visit_desktop');
 $('#reqlink').addEventListener('click', () => track('request_change'));
+document.addEventListener('click', e => { if (e.target.closest('.rq')) track('request_change'); });   // per-session Change links
 $('#q').addEventListener('input', () => track('search'));
 setInterval(load, CONFIG.REFRESH_MINUTES*60000);
 setInterval(() => {                       // TV mode: cycle through weekend days that have pitch use
