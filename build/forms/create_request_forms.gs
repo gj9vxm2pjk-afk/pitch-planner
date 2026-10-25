@@ -104,6 +104,17 @@ function responsesSheet(ss) {
 function buildQuestions(form) {
   const teamGroup = readTeams();
   const teams = Object.keys(teamGroup);
+
+  // Questions already there: only refresh the Team dropdown. Recreating them would change their ids and break the page's pre-fill.
+  const byTitle = {};
+  form.getItems().forEach(function (item) { byTitle[item.getTitle()] = item; });
+  const keys = Object.keys(T);
+  if (keys.length === form.getItems().length && keys.every(function (k) { return byTitle[T[k]]; })) {
+    byTitle[T.team].asListItem().setChoiceValues(teams);
+    Logger.log('Questions unchanged; Team dropdown updated (' + teams.length + ' teams).');
+    return;
+  }
+
   form.getItems().forEach(function (item) { form.deleteItem(item); });
   form.setCollectEmail(false).setProgressBar(false).setShowLinkToRespondAgain(false);
   form.setTitle('WBR Pitch Planner: change a session');
