@@ -12,7 +12,7 @@
  * Set up (about 5 minutes), signed in as the club coordinator, who must be able to open the table sheet and edit the form:
  *  1. Go to https://script.google.com and press New project.
  *  2. Delete the sample code, paste this whole file, press Save.
- *  3. Fill in LEADERS and COORDINATOR below.
+ *  3. Fill in the leaders' emails in LEADERS below (COORDINATOR is optional).
  *  4. Press Run > refreshForm. Approve the permission prompts. This replaces the form's questions and keeps its link.
  *  5. Open View > Logs. It prints REQUEST_ENTRIES: paste that line into CONFIG in build/src.html so the page can pre-fill the form.
  *  6. Press Run > installRouting. This adds the Group, Leader, Status columns to the responses sheet and the email trigger.
@@ -22,7 +22,7 @@
  */
 const FORM_ID = '1MjbGzPncwrqyAV2JlS5-YBzRgY5ufTX3pJraBa495HY';   // existing form to update; leave blank for createForms to make a new one
 const TABLE_SHEET_ID = '1tyHepQWdOvekFNW3gSeV_8pICxETJMfHZktI7c6tOCY';   // WBR Fixtures 26/27 (table)
-const COORDINATOR = 'coordinator@example.com';          // <-- copied on every request; also receives any group with no leader set
+const COORDINATOR = '';                                  // optional: copied on every request, and receives any group with no leader email. The group leaders are the coordinators, so leave blank unless someone should see everything
 const LEADERS = {                                        // <-- who gets requests for each group
   'MINIS':        { name: 'Minis leader',         email: '' },
   'JUNIOR BOYS':  { name: 'Junior Boys leader',   email: '' },
@@ -161,10 +161,11 @@ function routeRequest(e) {
   const lines = Object.keys(e.namedValues).filter(function (k) { return e.namedValues[k].join('').trim(); })
     .map(function (k) { return k + ': ' + e.namedValues[k].join(' '); });
   const to = leader.email || COORDINATOR;
+  if (!to) return;                                   // no email set for this group yet: the request is still in the responses sheet
   const subject = 'Pitch Planner: ' + v(T.action) + ' – ' + v(T.team) + ' – ' + v(T.date);
-  const body = lines.join('\n') + '\n\nSent to: ' + leader.name + (leader.email ? '' : ' (no email set, so sent to the coordinator)') +
+  const body = lines.join('\n') + '\n\nSent to: ' + leader.name + (leader.email ? '' : ' (no leader email set, so sent to the coordinator)') +
     '\nUpdate the Status column in the responses sheet once handled:\n' + sheet.getParent().getUrl();
   const mail = { to: to, subject: subject, body: body };
-  if (to !== COORDINATOR) mail.cc = COORDINATOR;
+  if (COORDINATOR && to !== COORDINATOR) mail.cc = COORDINATOR;
   MailApp.sendEmail(mail);
 }
