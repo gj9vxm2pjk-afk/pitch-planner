@@ -112,6 +112,7 @@ function buildQuestions(form) {
   if (keys.length === form.getItems().length && keys.every(function (k) { return byTitle[T[k]]; })) {
     byTitle[T.team].asListItem().setChoiceValues(teams);
     Logger.log('Questions unchanged; Team dropdown updated (' + teams.length + ' teams).');
+    logEntries(form);
     return;
   }
 
@@ -134,10 +135,38 @@ function buildQuestions(form) {
   ids.opp = form.addTextItem().setTitle(T.opp).setHelpText('Matches only.').getId();
   ids.note = form.addParagraphTextItem().setTitle(T.note).setHelpText('For example: move to 10:30–12:30 on the AGP. Say why if you can.').getId();
 
-  // Paste this line into CONFIG in build/src.html: the page uses it to pre-fill the form
-  Logger.log('REQUEST_ENTRIES: ' + JSON.stringify(ids));
+  logEntries(form);
   Logger.log('Teams offered: ' + teams.length + ' (' + GROUPS.join(', ') + ')');
 }
+
+/**
+ * Logs the entry ids the page needs to pre-fill the form. They are read from Google's own pre-filled link for each question:
+ * an item's getId() is not always the id that link uses.
+ */
+function logEntries(form) {
+  const byTitle = {};
+  form.getItems().forEach(function (item) { byTitle[item.getTitle()] = item; });
+  const out = {};
+  Object.keys(T).forEach(function (k) {
+    const item = byTitle[T[k]];
+    if (!item) return;
+    let r;
+    switch (item.getType()) {
+      case FormApp.ItemType.TEXT: r = item.asTextItem().createResponse('x'); break;
+      case FormApp.ItemType.PARAGRAPH_TEXT: r = item.asParagraphTextItem().createResponse('x'); break;
+      case FormApp.ItemType.DATE: r = item.asDateItem().createResponse(new Date()); break;
+      case FormApp.ItemType.LIST: r = item.asListItem().createResponse(item.asListItem().getChoices()[0].getValue()); break;
+      case FormApp.ItemType.MULTIPLE_CHOICE: r = item.asMultipleChoiceItem().createResponse(item.asMultipleChoiceItem().getChoices()[0].getValue()); break;
+    }
+    const m = r && form.createResponse().withItemResponse(r).toPrefilledUrl().match(/entry\.(\d+)=/);
+    if (m) out[k] = Number(m[1]);
+  });
+  // Paste this line into CONFIG in build/src.html: the page uses it to pre-fill the form
+  Logger.log('REQUEST_ENTRIES: ' + JSON.stringify(out));
+}
+
+/** Run this to print REQUEST_ENTRIES again without changing the form. */
+function showEntries() { logEntries(openForm()); }
 
 /** Team -> group for the groups that use this form, read from the Teams tab (columns Team, Group). */
 function readTeams() {
